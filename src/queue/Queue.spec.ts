@@ -1,4 +1,5 @@
 import Queue from './Queue';
+import { IQueueItem } from '../item';
 import 'jest';
 
 describe('Queue', () => {
@@ -34,34 +35,44 @@ describe('Queue.registerQueueItemType', () => {
   });
 
   test('returns true when called with 4 arguments: (type: string, validator: func, worker: func, linker: func)', () => {
-    const type = 'STRING';
-    const worker = () => {};
-    const validator = () => {};
-    const linker = () => {};
+    const type = 'TYPE';
+    const item = { type };
+    const handler = (type: IQueueItem) =>
+      new Promise((resolve, reject) => {
+        resolve(true);
+      });
+    const validator = handler;
+    const linker = handler;
+    const worker = handler;
     expect(
       newQueue.registerQueueItemType(type, worker, validator, linker)
     ).toBeTruthy();
   });
 });
 
-describe('Queue.getHandlers', () => {
+describe('Queue.getHandlersForType', () => {
   const newQueue = new Queue();
   test('exists', () => {
-    expect(newQueue.getHandlers).toBeTruthy();
+    expect(newQueue.getHandlersForType).toBeTruthy();
   });
 
   test('takes a itemType string as its argument', () => {
-    expect(newQueue.getHandlers('srhaf')).toBeUndefined();
+    expect(newQueue.getHandlersForType('srhaf')).toBeUndefined();
   });
 
   test('returns a handlers object when called with a corresponding itemType string', () => {
     const type = 'TYPE';
-    const worker = () => {};
-    const validator = () => {};
-    const linker = () => {};
+    const item = { type };
+    const handler = (type: IQueueItem) =>
+      new Promise((resolve, reject) => {
+        resolve(true);
+      });
+    const validator = handler;
+    const linker = handler;
+    const worker = handler;
 
     newQueue.registerQueueItemType(type, worker, validator, linker);
-    const handlers = newQueue.getHandlers(type);
+    const handlers = newQueue.getHandlersForType(type);
 
     expect(handlers).toBeDefined();
     expect(handlers.validator).toBeDefined();
@@ -70,5 +81,16 @@ describe('Queue.getHandlers', () => {
     expect(handlers.worker).toBeInstanceOf(Function);
     expect(handlers.validator).toBeInstanceOf(Function);
     expect(handlers.linker).toBeInstanceOf(Function);
+  });
+});
+
+describe('Queue.middleware', () => {
+  const newQueue = new Queue();
+  test('exists', () => {
+    expect(newQueue.middleware).toBeTruthy();
+  });
+
+  test('returns a function', () => {
+    expect(newQueue.middleware).toBeInstanceOf(Function);
   });
 });

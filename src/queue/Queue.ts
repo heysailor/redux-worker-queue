@@ -1,41 +1,37 @@
+import { Middleware } from 'redux';
 import { isString, isFunction } from 'lodash';
+import { middleware } from './middleware';
+import { IQueueItem } from '../item';
 
 // TODO - import from other file
-type Validator = () => any;
-// TODO
-type Worker = () => any;
-// TODO
-type Linker = () => any;
-// TODO
-interface QueueItem {
-  type: string;
-}
+type Handler = (item: IQueueItem) => Promise<{}>;
 
 type ItemType = string;
 
 interface IHandlers {
-  validator: Validator;
-  worker: Worker;
-  linker: Linker;
+  validator: Handler;
+  worker: Handler;
+  linker: Handler;
 }
 
-interface IREGISTERED_HANDLERS {
+interface IRegisteredHandlers {
   [key: string]: IHandlers;
 }
 
 class Queue {
-  private HANDLERS: IREGISTERED_HANDLERS = {};
-  private _name: string;
-
   constructor(name?: string) {
     this._name = name || 'queue';
   }
 
+  private _handlers: IRegisteredHandlers = {};
+  private _name: string;
+  private _middleware: Middleware = middleware;
+
   public registerQueueItemType(
     type: ItemType,
-    validator: Validator,
-    worker: Worker,
-    linker: Linker
+    validator: Handler,
+    worker: Handler,
+    linker: Handler
   ): boolean | Error {
     if (!type || !isString(type)) {
       throw new Error('Must supply itemType string to register for queue');
@@ -70,11 +66,15 @@ class Queue {
   }
 
   private addHandlers(type: ItemType, handlers: IHandlers) {
-    this.HANDLERS[type] = handlers;
+    this._handlers[type] = handlers;
   }
 
-  public getHandlers(type: ItemType): IHandlers {
-    return this.HANDLERS[type];
+  public getHandlersForType(type: ItemType): IHandlers {
+    return this._handlers[type];
+  }
+
+  public get middleware() {
+    return this._middleware;
   }
 }
 
