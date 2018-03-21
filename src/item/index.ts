@@ -1,3 +1,9 @@
-import { QueueItem, IQueueItem, INewQueueItem } from './item';
+import {
+  QueueItem,
+  IQueueItem,
+  INewQueueItem,
+  ClientMutationId,
+  ItemType,
+} from './item';
 
-export { QueueItem, IQueueItem, INewQueueItem };
+export { QueueItem, IQueueItem, INewQueueItem, ClientMutationId, ItemType };

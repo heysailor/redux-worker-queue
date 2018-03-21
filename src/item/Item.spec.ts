@@ -8,7 +8,9 @@ describe('QueueItem', () => {
   });
   const starter = {
     type: 'ITEM',
-    payload: {},
+    payload: {
+      satisfaction: 'awesome',
+    },
     workerAction: 'BLOW_NOSE',
   };
   const newItem = new QueueItem(starter);
@@ -17,7 +19,7 @@ describe('QueueItem', () => {
     expect(newItem).toBeInstanceOf(QueueItem);
   });
 
-  describe('properties', () => {
+  describe('when given a new item to create, properties', () => {
     test('should equal the provided properties', () => {
       expect(newItem.type).toEqual(starter.type);
       expect(newItem.payload).toEqual(starter.payload);
@@ -44,6 +46,25 @@ describe('QueueItem', () => {
           newItem.clientMutationId.length &&
           isString(newItem.clientMutationId)
       ).toBeTruthy();
+    });
+  });
+
+  describe('when given an existing item to update', () => {
+    const updatedItem = new QueueItem(newItem);
+    test('clientMutationId property should remain unchanged', () => {
+      expect(updatedItem.clientMutationId).toEqual(newItem.clientMutationId);
+    });
+    test('createdAt property should remain unchanged', () => {
+      expect(updatedItem.createdAt).toEqual(newItem.createdAt);
+    });
+    test('payload property should remain unchanged', () => {
+      expect(updatedItem.payload).toMatchObject(newItem.payload);
+    });
+    test('workerAction property should remain unchanged', () => {
+      expect(updatedItem.workerAction).toEqual(newItem.workerAction);
+    });
+    test('type property should remain unchanged', () => {
+      expect(updatedItem.type).toEqual(newItem.type);
     });
   });
 });

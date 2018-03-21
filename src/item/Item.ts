@@ -1,59 +1,54 @@
 import shortid from 'shortid';
+import { cloneDeep } from 'lodash';
 
 interface IDependencies {
   required: {
-    [key: string]: [string | number];
+    [key: string]: ClientMutationId;
   };
   resolved: {
-    [key: string]: [string | number];
+    [key: string]: ClientMutationId;
   };
 }
 
+export type ItemType = string;
+
+export type ClientMutationId = string | number;
+type ItemErrors = Error[] | Object[] | String[];
+
 export interface INewQueueItem {
-  readonly type: string;
+  readonly type: ItemType;
   readonly payload: object;
   readonly workerAction: string;
   readonly meta?: object;
   readonly dependencies?: IDependencies;
-  readonly errors?: Error[] | Object[] | String[];
+  readonly errors?: ItemErrors;
 }
 
-export interface IQueueItem extends INewQueueItem {
+export interface IQueueItem {
+  readonly type: ItemType;
+  readonly payload: object;
+  readonly workerAction: string;
   readonly meta: object;
   readonly dependencies: IDependencies;
-  readonly errors: Error[] | Object[] | String[];
-  readonly clientMutationId: string | number;
+  readonly errors: ItemErrors;
+  readonly clientMutationId: ClientMutationId;
   readonly createdAt: string;
 }
 
 export class QueueItem implements IQueueItem {
-  readonly type = '';
-  readonly clientMutationId = shortid.generate();
-  readonly createdAt = new Date().toJSON();
-  readonly workerAction = '';
-  readonly meta = {};
-  readonly errors = [];
-  readonly payload = {};
-  readonly dependencies = {
-    required: {},
+  readonly type: ItemType = '';
+  readonly payload: object = {};
+  readonly workerAction: string = '';
+  readonly meta: object = {};
+  readonly dependencies: IDependencies = {
     resolved: {},
+    required: {},
   };
+  readonly errors: ItemErrors = [];
+  readonly clientMutationId: ClientMutationId = shortid.generate();
+  readonly createdAt: string = new Date().toJSON();
 
   constructor(item: INewQueueItem | IQueueItem) {
-    this.type = item.type || this.type;
-    this.payload = { ...(item.payload || this.payload) };
-    this.workerAction = item.workerAction || this.workerAction;
-    this.meta = { ...(item.meta || this.meta) };
-    this.errors = [...(item.errors ? item.errors : this.errors)];
-    this.dependencies = {
-      resolved: {
-        ...((item.dependencies && item.dependencies.resolved) ||
-          this.dependencies.resolved),
-      },
-      required: {
-        ...((item.dependencies && item.dependencies.resolved) ||
-          this.dependencies.required),
-      },
-    };
+    Object.assign(this, cloneDeep(item));
   }
 }

@@ -1,12 +1,10 @@
 import { Middleware } from 'redux';
 import { isString, isFunction } from 'lodash';
 import { middleware } from './middleware';
-import { IQueueItem } from '../item';
+import { IQueueItem, ItemType } from '../item';
 
 // TODO - import from other file
 type Handler = (item: IQueueItem) => Promise<{}>;
-
-type ItemType = string;
 
 interface IHandlers {
   validator: Handler;
@@ -20,12 +18,12 @@ interface IRegisteredHandlers {
 
 class Queue {
   constructor(name?: string) {
-    this._name = name || 'queue';
+    this._name = name ? name : this._name;
   }
 
-  private _handlers: IRegisteredHandlers = {};
-  private _name: string;
-  private _middleware: Middleware = middleware;
+  readonly _handlers: IRegisteredHandlers = {};
+  readonly _name: string = 'queue';
+  readonly _middleware: Middleware = middleware;
 
   public registerQueueItemType(
     type: ItemType,
@@ -61,10 +59,6 @@ class Queue {
     return true;
   }
 
-  public get name(): string {
-    return this._name;
-  }
-
   private addHandlers(type: ItemType, handlers: IHandlers) {
     this._handlers[type] = handlers;
   }
@@ -75,6 +69,10 @@ class Queue {
 
   public get middleware() {
     return this._middleware;
+  }
+
+  public get name(): string {
+    return this._name;
   }
 }
 
