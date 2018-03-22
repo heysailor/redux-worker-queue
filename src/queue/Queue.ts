@@ -16,9 +16,15 @@ interface IRegisteredHandlers {
   [key: string]: IHandlers;
 }
 
+interface IQueueOptions {
+  name?: string;
+}
+
 class Queue {
-  constructor(name?: string) {
-    this._name = name ? name : this._name;
+  constructor(opts?: IQueueOptions) {
+    if (opts) {
+      this._name = opts.name ? opts.name : this._name;
+    }
   }
 
   readonly _handlers: IRegisteredHandlers = {};

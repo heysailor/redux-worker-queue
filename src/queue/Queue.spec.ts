@@ -22,8 +22,8 @@ describe('Queue.name', () => {
     expect(newQueue.name).toEqual('queue');
   });
 
-  test('returns the provided queue name when queue instantiated with a name', () => {
-    const namedQueue = new Queue('boo');
+  test('returns the provided queue name when queue instantiated with a name option', () => {
+    const namedQueue = new Queue({ name: 'boo' });
     expect(namedQueue.name).toEqual('boo');
   });
 });
