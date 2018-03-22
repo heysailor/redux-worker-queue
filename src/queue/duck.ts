@@ -63,7 +63,7 @@ export function __clearQueue__(): I__clearQueue__Action {
 
 // Reducers
 
-export default function queue(
+export default function queueReducer(
   state: ItemQueue = initialState,
   action: ActionTypes
 ): ItemQueue {

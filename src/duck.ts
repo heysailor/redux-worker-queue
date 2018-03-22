@@ -21,15 +21,11 @@ export type ActionTypes =
 interface StoreEnhancerState {}
 
 export interface IRootState extends StoreEnhancerState {
-  queue: ItemQueue;
+  queue: Reducer<ItemQueue>;
 }
 
-const base = combineReducers({
+const workerQueue: Reducer<IRootState> = combineReducers({
   queue: queueReducer,
 });
 
-const rootReducer: Reducer<IRootState> = combineReducers({
-  workerQueue: base,
-});
-
-export default rootReducer;
+export default workerQueue;

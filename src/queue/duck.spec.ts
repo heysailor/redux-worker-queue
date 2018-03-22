@@ -6,34 +6,34 @@ import queueReducer, {
   ItemQueue,
 } from './duck';
 import Queue from './Queue';
+import { IOtherAction } from '../duck';
 import { QueueItem, INewQueueItem, IQueueItem } from '../item';
 import 'jest';
-import { IOtherAction } from '../duck';
 
-const queueItem: INewQueueItem = {
-  type: 'SNOT',
-  payload: {
-    consistency: 'stringy',
-  },
-};
-
-// Initialise queue
-const workerQueue = new Queue();
+// Prevents weird jest-only, only-some files error: No reducer provided for key "queue"
+// https://stackoverflow.com/a/47311830/2779264
+jest.mock('../main'); // ie the redux store
 
 describe('QUEUE duck', () => {
+  const queueItem: INewQueueItem = {
+    type: 'SNOT',
+    payload: {
+      consistency: 'stringy',
+    },
+  };
+  // Initialise queue
+  const workerQueue = new Queue();
   describe('Actions', () => {
     describe('addOrUpdateItem()', () => {
       test('it exists', () => {
         expect(addOrUpdateItem).toBeDefined();
       });
-
       test('it takes a new queueItem and returns an action with ADD_OR_UPDATE_ITEM actionType and item with added clientMutationID, createdAt propertied', () => {
         const action = addOrUpdateItem(queueItem);
         expect(action).toBeDefined();
         expect(action.item.clientMutationId).toBeDefined();
         expect(action.item.createdAt).toBeDefined();
       });
-
       test('it takes an existing queueItem and returns an action with ADD_OR_UPDATE_ITEM actionType and matching item', () => {
         const existingItem = new QueueItem(queueItem);
         const action = addOrUpdateItem(existingItem);
@@ -56,7 +56,6 @@ describe('QUEUE duck', () => {
           });
         });
       });
-
       describe('__clearQueue__()', () => {
         test('it exists', () => {
           expect(__clearQueue__).toBeDefined();
@@ -70,7 +69,6 @@ describe('QUEUE duck', () => {
       });
     });
   });
-
   describe('Reducer', () => {
     const state: ItemQueue = [];
     const queueItem: INewQueueItem = {
@@ -78,22 +76,18 @@ describe('QUEUE duck', () => {
       payload: {},
     };
     const randomAction: IOtherAction = { type: ActionTypeKeys.OTHER };
-
     test('it exists', () => {
       expect(queueReducer).toBeDefined();
       expect(queueReducer).toBeInstanceOf(Function);
     });
-
     test('it initializes state when called without state', () => {
       const result = queueReducer(state, randomAction);
       expect(result).toMatchObject(state);
     });
-
     test('it returns an identical state object when provided state and an unknown action type', () => {
       const result = queueReducer(state, randomAction);
       expect(result).toMatchObject(state);
     });
-
     describe('when called with action made with...', () => {
       test(' addOrUpdateItem() --> it adds a queue item', () => {
         const addFirst = addOrUpdateItem(queueItem);
@@ -103,7 +97,6 @@ describe('QUEUE duck', () => {
         expect(secondState.length).toEqual(2);
         expect(secondState[0]).toMatchObject(queueItem);
       });
-
       test('removeItem() --> removes a queue item', () => {
         const addAction = addOrUpdateItem(queueItem);
         const addedState = queueReducer(state, addAction);
@@ -112,7 +105,6 @@ describe('QUEUE duck', () => {
         const removedState = queueReducer(addedState, removeAction);
         expect(removedState.length).toEqual(0);
       });
-
       test('__clearQueue__() --> purges the queue', () => {
         const addFirst = addOrUpdateItem(queueItem);
         const addSecond = addOrUpdateItem(queueItem);

@@ -1,1 +1,1 @@
-{"version":3,"file":"duck.js","sourceRoot":"","sources":["../src/duck.ts"],"names":[],"mappings":";;;;;AAAA,iCAAiD;AAEjD,wDAIsB;AAoBtB,MAAM,IAAI,GAAG,uBAAe,CAAC;IAC3B,KAAK,EAAE,cAAY;CACpB,CAAC,CAAC;AAEH,MAAM,WAAW,GAAwB,uBAAe,CAAC;IACvD,WAAW,EAAE,IAAI;CAClB,CAAC,CAAC;AAEH,kBAAe,WAAW,CAAC"}
+{"version":3,"file":"duck.js","sourceRoot":"","sources":["../src/duck.ts"],"names":[],"mappings":";;;;;AAAA,iCAAiD;AAEjD,wDAIsB;AAoBtB,MAAM,WAAW,GAAwB,uBAAe,CAAC;IACvD,KAAK,EAAE,cAAY;CACpB,CAAC,CAAC;AAEH,kBAAe,WAAW,CAAC"}
