@@ -9,9 +9,9 @@ const DEFAULT_NAME = 'workerQueue';
 type Handler = (item: IQueueItem) => Promise<{}>;
 
 interface IHandlers {
-  validator: Handler;
+  preWorker: Handler;
   worker: Handler;
-  linker: Handler;
+  postWorker: Handler;
 }
 
 interface IRegisteredHandlers {
@@ -71,16 +71,16 @@ class Queue {
 
   public registerQueueItemType(
     type: ItemType,
-    validator: Handler,
+    preWorker: Handler,
     worker: Handler,
-    linker: Handler
+    postWorker: Handler
   ): boolean | Error {
     if (!type || !isString(type)) {
       throw new Error('Must supply itemType string to register for queue');
     }
-    if (!validator || !isFunction(validator)) {
+    if (!preWorker || !isFunction(preWorker)) {
       throw new Error(
-        `Must supply validator function for this queue item type ${type}`
+        `Must supply preWorker function for this queue item type ${type}`
       );
     }
     if (!worker || !isFunction(worker)) {
@@ -88,15 +88,15 @@ class Queue {
         `Must supply worker function for this queue item type ${type}`
       );
     }
-    if (!linker || !isFunction(linker)) {
+    if (!postWorker || !isFunction(postWorker)) {
       throw new Error(
-        `Must supply linker function for this queue item type ${type}`
+        `Must supply postWorker function for this queue item type ${type}`
       );
     }
     this.addHandlers(type, {
-      validator,
+      preWorker,
       worker,
-      linker,
+      postWorker,
     });
 
     return true;
@@ -105,11 +105,9 @@ class Queue {
   private addHandlers(type: ItemType, handlers: IHandlers) {
     this._handlers[type] = handlers;
   }
-
   public getHandlersForType(type: ItemType): IHandlers {
     return this._handlers[type];
   }
-
   public get name(): string {
     return this.settings.name;
   }

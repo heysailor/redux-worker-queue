@@ -28,18 +28,18 @@ describe('Queue', () => {
         expect(newQueue.registerQueueItemType).toBeDefined();
       });
 
-      test('returns true when called with 4 arguments: (type: string, validator: func, worker: func, linker: func)', () => {
+      test('returns true when called with 4 arguments: (type: string, preWorker: func, worker: func, postWorker: func)', () => {
         const type = 'TYPE';
         const item = { type };
         const handler = (type: IQueueItem) =>
           new Promise((resolve, reject) => {
             resolve(true);
           });
-        const validator = handler;
-        const linker = handler;
+        const preWorker = handler;
+        const postWorker = handler;
         const worker = handler;
         expect(
-          newQueue.registerQueueItemType(type, worker, validator, linker)
+          newQueue.registerQueueItemType(type, worker, preWorker, postWorker)
         ).toBeTruthy();
       });
     });
@@ -56,20 +56,20 @@ describe('Queue', () => {
           new Promise((resolve, reject) => {
             resolve(true);
           });
-        const validator = handler;
-        const linker = handler;
+        const preWorker = handler;
+        const postWorker = handler;
         const worker = handler;
 
-        newQueue.registerQueueItemType(type, worker, validator, linker);
+        newQueue.registerQueueItemType(type, worker, preWorker, postWorker);
         const handlers = newQueue.getHandlersForType(type);
 
         expect(handlers).toBeDefined();
-        expect(handlers.validator).toBeDefined();
+        expect(handlers.preWorker).toBeDefined();
         expect(handlers.worker).toBeDefined();
-        expect(handlers.linker).toBeDefined();
+        expect(handlers.postWorker).toBeDefined();
         expect(handlers.worker).toBeInstanceOf(Function);
-        expect(handlers.validator).toBeInstanceOf(Function);
-        expect(handlers.linker).toBeInstanceOf(Function);
+        expect(handlers.preWorker).toBeInstanceOf(Function);
+        expect(handlers.postWorker).toBeInstanceOf(Function);
       });
     });
   });

@@ -4,7 +4,7 @@ Work in progress.
 
 Redux powered queue for the storage and deferred processing of objects of multiple named types.
 
-Coordinates the application of custom asynchronous validation, worker and linker functions.
+Coordinates the application of custom asynchronous preWorker, worker and postWorker functions.
 
 Suited to complex deferred offline persistence handling.
 
