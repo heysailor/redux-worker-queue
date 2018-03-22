@@ -74,7 +74,7 @@ A queue item is only processed by the next handler once the preceding handler ha
 Import the queue middleware to control the queue with redux actions, then apply it in your code:
 
     import { createStore, applyMiddleware } from 'redux'
-    import { Queue, getWorkerQueueMiddleware } from 'redux-worker-queue';
+    import { Queue, middleware } from 'redux-worker-queue';
 
     import myAwesomeReducer from './reducers';
     import {
@@ -97,7 +97,7 @@ Import the queue middleware to control the queue with redux actions, then apply 
     // Create your store with workerQueueMiddleware applied
     let store = createStore(
       myAwesomeReducer,
-      applyMiddleware(getWorkerQueueMiddleware())
+      applyMiddleware(middleware)
     );
 
     // We want to save Buster!
