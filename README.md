@@ -123,12 +123,12 @@ Returns the queue coordinator instance. Allows only one instance to be made.
 
 Takes an optional settings object:
 
-    {
+    myQueue = new Queue({
       order?: {
         by?: 'createdAt|clientMutationId,
         direction?: 'asc'|'desc',
       }
-    }
+    });
 
 #### `Queue.registerQueueItemType`
 
@@ -143,11 +143,11 @@ Must be called at least once to register a type of `QueueItem` to be placed on t
 
 #### `Queue.getHandlersForType`
 
+Returns the handlers for the specified `QueueItem` type.
+
     myQueue.getHandlersForType(
       type: String,
     )
-
-Returns the handlers for the specified `QueueItem` type.
 
 #### `Queue.order`
 
@@ -155,25 +155,25 @@ The ordering settings of the queue.
 
 #### `Queue.addOrUpdateQueueItem`
 
+Called to add a new item to the queue, or update an existing one. See QueueItem and NewQueueItem.
+
     myQueue.addOrUpdateQueueItem(
       item: QueueItem | NewQueueItem
     )
 
-Called to add a new item to the queue, or update an existing one. See QueueItem and NewQueueItem.
-
 #### `Queue.removeItem`
+
+Called to remove QueueItem from the queue, as identified by its clientMutationId property.
 
     myQueue.removeItem(
       clientMutationId: String
     )
 
-Called to remove QueueItem from the queue, as identified by its clientMutationId property.
-
 #### `Queue.clearQueue`
 
-    myQueue.clearQueue()
-
 _Danger!_ Wipes the queue.
+
+    myQueue.clearQueue()
 
 ### Data types
 
@@ -192,7 +192,7 @@ Can be used to make a brand new `QueueItem`. If not set, `clientMutationId` is a
 
 #### QueueItem
 
-`QueueItem`s are guaranteed to have all these properties. The `createdAt` property cannot be overridden. The `clientMutationId` is the unique identifier.
+A `QueueItem` is guaranteed to have all these properties. The `createdAt` property cannot be overridden. The `clientMutationId` is the unique identifier.
 
     export interface IQueueItem {
       type: ItemType;
