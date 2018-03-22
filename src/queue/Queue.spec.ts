@@ -14,7 +14,6 @@ describe('Queue', () => {
   test('allows only instance to be created', () => {
     function newWithNoNameSpecified() {
       const another = new Queue();
-      console.log('ANother', another);
     }
     function newWithAnotherNameSpecified() {
       const another2 = new Queue({ name: 'boo' });
@@ -89,9 +88,18 @@ describe('Queue', () => {
       // });
     });
 
+    describe('action creator linking', () => {
+      test('addOrUpdateItem() exists', () => {
+        expect(newQueue.actions.addOrUpdateItem).toBeDefined();
+      });
+      test('removeItem() exists', () => {
+        expect(newQueue.actions.removeItem).toBeDefined();
+      });
+    });
+
     describe('order', () => {
       test('exists', () => {
-        expect(newQueue.order).toBeTruthy();
+        expect(newQueue.order).toBeDefined();
       });
 
       test('returns {by: ["createdAt"], direction: "asc"} when queue instantiated without a order option', () => {
@@ -126,16 +134,6 @@ describe('Queue', () => {
       //     direction: 'desc',
       //   });
       // });
-    });
-
-    describe('middleware', () => {
-      test('exists', () => {
-        expect(newQueue.middleware).toBeTruthy();
-      });
-
-      test('returns a function', () => {
-        expect(newQueue.middleware).toBeInstanceOf(Function);
-      });
     });
   });
 });

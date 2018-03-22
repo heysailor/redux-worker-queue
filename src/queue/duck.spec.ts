@@ -1,13 +1,14 @@
-import queue, {
+import queueReducer, {
   addOrUpdateItem,
   removeItem,
   __clearQueue__,
-  cleanup,
   ActionTypeKeys,
+  ItemQueue,
 } from './duck';
-import { QueueItem, INewQueueItem } from '../item';
+import Queue from './Queue';
+import { QueueItem, INewQueueItem, IQueueItem } from '../item';
 import 'jest';
-import { IOtherAction } from '../actionTypes';
+import { IOtherAction } from '../duck';
 
 const queueItem: INewQueueItem = {
   workerAction: 'PICK_NOSE',
@@ -16,6 +17,9 @@ const queueItem: INewQueueItem = {
     consistency: 'stringy',
   },
 };
+
+// Initialise queue
+const workerQueue = new Queue();
 
 describe('QUEUE duck', () => {
   describe('Actions', () => {
@@ -65,32 +69,62 @@ describe('QUEUE duck', () => {
           });
         });
       });
-
-      describe('cleanup()', () => {
-        test('it exists', () => {
-          expect(cleanup).toBeDefined();
-        });
-        test('it makes an action with CLEANUP actionType', () => {
-          const action = cleanup();
-          expect(action).toMatchObject({
-            type: ActionTypeKeys.CLEANUP,
-          });
-        });
-      });
     });
   });
+
   describe('Reducer', () => {
-    const state = {
-      queue: [],
+    const state: ItemQueue = [];
+    const queueItem: INewQueueItem = {
+      type: 'SNOT',
+      workerAction: 'PICK',
+      payload: {},
     };
     const randomAction: IOtherAction = { type: ActionTypeKeys.OTHER };
+
     test('it exists', () => {
-      expect(queue).toBeDefined();
-      expect(queue).toBeInstanceOf(Function);
+      expect(queueReducer).toBeDefined();
+      expect(queueReducer).toBeInstanceOf(Function);
     });
-    test('it returns an identical state object when provided state and an unknown action type', () => {
-      const result = queue(state, randomAction);
+
+    test('it initializes state when called without state', () => {
+      const result = queueReducer(state, randomAction);
       expect(result).toMatchObject(state);
+    });
+
+    test('it returns an identical state object when provided state and an unknown action type', () => {
+      const result = queueReducer(state, randomAction);
+      expect(result).toMatchObject(state);
+    });
+
+    describe('when called with action made with...', () => {
+      test(' addOrUpdateItem() --> it adds a queue item', () => {
+        const addFirst = addOrUpdateItem(queueItem);
+        const firstState = queueReducer(state, addFirst);
+        const addSecond = addOrUpdateItem(queueItem);
+        const secondState = queueReducer(firstState, addSecond);
+        expect(secondState.length).toEqual(2);
+        expect(secondState[0]).toMatchObject(queueItem);
+      });
+
+      test('removeItem() --> removes a queue item', () => {
+        const addAction = addOrUpdateItem(queueItem);
+        const addedState = queueReducer(state, addAction);
+        expect(addedState.length).toEqual(1);
+        const removeAction = removeItem(addedState[0].clientMutationId);
+        const removedState = queueReducer(addedState, removeAction);
+        expect(removedState.length).toEqual(0);
+      });
+
+      test('__clearQueue__() --> purges the queue', () => {
+        const addFirst = addOrUpdateItem(queueItem);
+        const addSecond = addOrUpdateItem(queueItem);
+        let testState = queueReducer(state, addFirst);
+        testState = queueReducer(testState, addSecond);
+        expect(testState.length).toEqual(2);
+        const __clearQueue__Action = __clearQueue__();
+        testState = queueReducer(testState, __clearQueue__Action);
+        expect(testState.length).toEqual(0);
+      });
     });
   });
 });

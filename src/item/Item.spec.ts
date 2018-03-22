@@ -42,9 +42,7 @@ describe('QueueItem', () => {
 
     test('clientMutationId should be random id string', () => {
       expect(
-        newItem.clientMutationId &&
-          newItem.clientMutationId.length &&
-          isString(newItem.clientMutationId)
+        newItem.clientMutationId && isString(newItem.clientMutationId)
       ).toBeTruthy();
     });
   });

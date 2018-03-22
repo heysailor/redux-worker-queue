@@ -1,7 +1,6 @@
-import { Middleware } from 'redux';
 import { isString, isFunction, orderBy } from 'lodash';
-import { middleware } from './middleware';
-import { IQueueItem, ItemType, ClientMutationId, QueueItem } from '../item';
+import { IQueueItem, ItemType, ClientMutationId } from '../item';
+import { addOrUpdateItem, removeItem } from './duck';
 
 export let INSTANCE: Queue;
 const DEFAULT_NAME = 'workerQueue';
@@ -19,20 +18,26 @@ interface IRegisteredHandlers {
   [key: string]: IHandlers;
 }
 
-interface IQueueOrder {
-  by?: ('createdAt' | 'clientMutationId')[] | Function;
-  direction?: 'asc' | 'desc';
+type QueueOrderByOptions = ('createdAt' | 'clientMutationId')[];
+type QueueOrderDirectionOptions = 'asc' | 'desc';
+
+interface IQueueOrderSettings {
+  by: QueueOrderByOptions;
+  direction: QueueOrderDirectionOptions;
 }
 
 // Test parameter allows for instantiation
 export interface IQueueOptions {
   name?: string;
-  order?: IQueueOrder;
+  order?: {
+    by?: QueueOrderByOptions;
+    direction?: QueueOrderDirectionOptions;
+  };
 }
 
 interface IQueueSettings {
   name: string;
-  order: IQueueOrder;
+  order: IQueueOrderSettings;
 }
 
 class Queue {
@@ -43,7 +48,7 @@ class Queue {
       throw new Error(`A queue exists already with the name "${name}".`);
     }
     // Bit clunky, as all values may be undefined.
-    this.opts = {
+    this.settings = {
       order: {
         by: opts && opts.order && opts.order.by ? opts.order.by : ['createdAt'],
         direction:
@@ -57,9 +62,12 @@ class Queue {
     INSTANCE = this;
   }
 
-  readonly opts: IQueueSettings;
+  readonly settings: IQueueSettings;
   readonly _handlers: IRegisteredHandlers = {};
-  readonly _middleware: Middleware = middleware;
+  readonly actions = {
+    addOrUpdateItem,
+    removeItem,
+  };
 
   public registerQueueItemType(
     type: ItemType,
@@ -102,15 +110,11 @@ class Queue {
     return this._handlers[type];
   }
 
-  public get middleware() {
-    return this._middleware;
-  }
-
   public get name(): string {
-    return this.opts.name;
+    return this.settings.name;
   }
-  public get order(): IQueueOrder {
-    return this.opts.order;
+  public get order(): IQueueOrderSettings {
+    return this.settings.order;
   }
 }
 

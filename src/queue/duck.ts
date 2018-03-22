@@ -1,35 +1,25 @@
 import { combineReducers, Store, Reducer, AnyAction } from 'redux';
-import { orderBy } from 'lodash';
+import { orderBy, uniqBy, reject } from 'lodash';
+import { createSelector } from 'reselect';
 import {
-  QueueItem,
   INewQueueItem,
   IQueueItem,
   ClientMutationId,
+  QueueItem,
 } from '../item';
 import { INSTANCE } from './Queue';
-import { IRootState } from '../store';
-import { ActionTypes } from '../actionTypes';
+import { ActionTypes, IRootState } from '../duck';
 
-export interface IQueueState {
-  queue: IQueueItem[];
-}
+export type ItemQueue = IQueueItem[];
+
+const initialState: ItemQueue = [];
 
 // See this for a explanation of this approach, including use of 'OTHER'
 // https://spin.atomicobject.com/2017/07/24/redux-action-pattern-typescript/
 export enum ActionTypeKeys {
   ADD_OR_UPDATE_ITEM = '__QUEUE__ADD_OR_UPDATE_ITEM',
   REMOVE_ITEM = '__QUEUE__REMOVE_ITEM',
-
-  SET_ITEM_VALIDATION = '__QUEUE__SET_ITEM_VALIDATION',
-  SET_ITEM_ELIGIBILITY = '__QUEUE__SET_ITEM_ELIGIBILITY',
-  SET_ITEM_HASH = '__QUEUE__SET_ITEM_HASH',
-  SET_ITEM_SAVING = '__QUEUE__SET_ITEM_SAVING',
-
-  CLEANUP = '__QUEUE__CLEANUP',
-  REMOVE_ITEM_HASH = '__QUEUE__REMOVE_ITEM_HASH',
-
   __CLEAR__ = '__QUEUE__CLEAR',
-
   OTHER = '__any_other_action__',
 }
 
@@ -71,34 +61,21 @@ export function __clearQueue__(): I__clearQueue__Action {
   return { type: ActionTypeKeys.__CLEAR__ };
 }
 
-// Clean up completed items
-
-export interface ICleanupAction {
-  type: ActionTypeKeys.CLEANUP;
-}
-
-export function cleanup(): ICleanupAction {
-  return { type: ActionTypeKeys.CLEANUP };
-}
-
-// Reducer
+// Reducers
 
 export default function queue(
-  state: IQueueState,
+  state: ItemQueue = initialState,
   action: ActionTypes
-): IQueueState {
+): ItemQueue {
   switch (action.type) {
     case ActionTypeKeys.ADD_OR_UPDATE_ITEM: {
-      return {
-        // Todo...add the commented-out uniqBy to this.
-        // Use reselect to optimise.
-        queue: sortedQueue(state.queue),
-        ...state,
-        // ...state,
-        // queue: sortedQueue(
-        //   uniqBy([action.item, ...state.queue], item => item.clientMutationId)
-        // ),
-      };
+      return orderedItemQueue(uniqueItemQueue([action.item, ...state]));
+    }
+    case ActionTypeKeys.REMOVE_ITEM: {
+      return rejectedItemQueue(state, action.clientMutationId);
+    }
+    case ActionTypeKeys.__CLEAR__: {
+      return [];
     }
 
     default: {
@@ -107,7 +84,20 @@ export default function queue(
   }
 }
 
-// Utils
-function sortedQueue(queue: IQueueItem[]) {
-  return orderBy(queue, INSTANCE.order.by, INSTANCE.order.direction);
-}
+// Selectors
+
+// Utils - all return new array
+const uniqueItemQueue = (queue: ItemQueue): ItemQueue =>
+  uniqBy(queue, (item: IQueueItem) => item.clientMutationId);
+
+const orderedItemQueue = (queue: ItemQueue): ItemQueue =>
+  orderBy(queue, INSTANCE.settings.order.by, INSTANCE.settings.order.direction);
+
+const rejectedItemQueue = (
+  queue: ItemQueue,
+  clientMutationId: ClientMutationId
+): ItemQueue =>
+  reject(
+    queue,
+    (item: IQueueItem) => item.clientMutationId === clientMutationId
+  );

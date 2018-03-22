@@ -1,4 +1,4 @@
-import { IQueueState } from './duck';
 import Queue from './Queue';
+import { ItemQueue } from './duck';
 
-export { Queue, IQueueState };
+export { Queue, ItemQueue };

@@ -1,7 +1,8 @@
 {
   "name": "redux-worker-queue",
   "version": "0.1.0",
-  "description": "Redux powered queue for the processing of objects via customisable workers, with persistence, validation and linking capability. Suited to complex deferred offline persistence handling.",
+  "description":
+    "WIP. Redux powered queue for the processing of objects via customisable workers, with persistence, validation and linking capability. Suited to complex deferred offline persistence handling.",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -22,6 +23,7 @@
     "lodash": "^4.17.5",
     "redux": "^3.7.2",
     "redux-saga": "^0.16.0",
+    "reselect": "^3.0.1",
     "shortid": "^2.2.8"
   },
   "jest": {
@@ -29,17 +31,7 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
   },
-  "testPathIgnorePatterns": [
-    "node_modules",
-    "src/.*"
-  ]
+  "testPathIgnorePatterns": ["node_modules", "src/.*"]
 }
