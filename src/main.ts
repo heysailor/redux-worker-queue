@@ -1,8 +1,12 @@
 import { createStore } from 'redux';
-import { middleware as workerQueueMiddleware } from './middleware';
+import { middleware } from './middleware';
 import rootReducer from './duck';
 import { Queue } from './queue';
 
-const store = createStore(rootReducer);
+let store = createStore(rootReducer);
 
-export { Queue, workerQueueMiddleware, store };
+export function replaceStore(externalStore: any) {
+  store = externalStore;
+}
+
+export { Queue, middleware, store };

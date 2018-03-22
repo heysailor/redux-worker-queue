@@ -11,24 +11,26 @@ describe('QueueItem', () => {
     payload: {
       satisfaction: 'awesome',
     },
-    workerAction: 'BLOW_NOSE',
+    naughtyProperty: 'should not be here',
   };
   const newItem = new QueueItem(starter);
 
-  test('should instantiate with object containing type, payload, workerAction properties', () => {
+  test('should instantiate with object containing type & payload properties', () => {
     expect(newItem).toBeInstanceOf(QueueItem);
   });
 
-  describe('when given a new item to create, properties', () => {
+  test('should instantiate with object containing type & payload properties', () => {
+    expect(newItem).toBeInstanceOf(QueueItem);
+  });
+
+  describe('when given a new item to create, the new item', () => {
     test('should equal the provided properties', () => {
       expect(newItem.type).toEqual(starter.type);
       expect(newItem.payload).toEqual(starter.payload);
-      expect(newItem.workerAction).toEqual(starter.workerAction);
     });
 
-    test('should include createdAt, clientMutationId automatically', () => {
-      expect(newItem.createdAt).toBeDefined();
-      expect(newItem.clientMutationId).toBeDefined();
+    test('should ignore non-specified properties', () => {
+      expect(newItem.naughtyProperty).toBeUndefined();
     });
 
     test('createdAt should be a date string', () => {
@@ -48,21 +50,24 @@ describe('QueueItem', () => {
   });
 
   describe('when given an existing item to update', () => {
-    const updatedItem = new QueueItem(newItem);
+    const changedItem = {
+      ...newItem,
+      type: 'BOO',
+      payload: { ooh: 'ahh' },
+    };
+    const updatedItem = new QueueItem(changedItem);
     test('clientMutationId property should remain unchanged', () => {
       expect(updatedItem.clientMutationId).toEqual(newItem.clientMutationId);
     });
     test('createdAt property should remain unchanged', () => {
       expect(updatedItem.createdAt).toEqual(newItem.createdAt);
     });
-    test('payload property should remain unchanged', () => {
-      expect(updatedItem.payload).toMatchObject(newItem.payload);
+    test('payload property should change', () => {
+      expect(updatedItem.payload).toEqual(changedItem.payload);
     });
-    test('workerAction property should remain unchanged', () => {
-      expect(updatedItem.workerAction).toEqual(newItem.workerAction);
-    });
-    test('type property should remain unchanged', () => {
-      expect(updatedItem.type).toEqual(newItem.type);
+    // Probably unwise, but someone might want to for some reason...
+    test('type property should change', () => {
+      expect(updatedItem.type).toEqual(changedItem.type);
     });
   });
 });

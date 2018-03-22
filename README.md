@@ -39,7 +39,6 @@ Call `addOrUpdateItem()` with a new `payload: {}`,
 
     // Add Buster to the queue.
     const queued = myQueue.addOrUpdateItem({
-      workerAction: 'CREATE',
       type: 'PET',
       payload: myPet,
     });
@@ -48,49 +47,34 @@ Call `addOrUpdateItem()` with a new `payload: {}`,
 
 ## Queue work phases and handler functions
 
-Each queue item is processed in three phases: pre worker, worker, and post worker. You provide a handler function for each phase for when you register a queue item type. The handler functions must return a promise with a specific resolution object as below. A queue item is only removed once the all phases are complete.
+Each queue item is processed in three phases: pre worker, worker, and post worker. You provide a handler function for each phase when you register a queue item type.
 
-### Pre worker: `preWorker` handler
-
-This phase is used to determine which queue items are ready for the worker. The `preWorker` handler for each registered `QueueItem` type is called once per queue flush. If it finds errors, it should place them on the QueueItem.errors array.
-
-It must return a promise which rsesolves to an object, with a new QueueItem:
+The handler functions must return a promise, which should generally resolve as below:
 
     {
-      valid: Boolean,
-      item: QueueItem
-    }
-
-### Worker: `worker` handler
-
-In the worker phase, the `worker` handler is called repeatedly valid `QueueItems` of its registered type until it indicates it has successfully completed. If it has errors, it should place them on the QueueItem.errors array - and would indicated it did not complete. Once it is finished, it must save any relevant data (such as an `id`) in QueueItem.workerResult.
-
-It must also return a promise which resolves to an object with a new QueueItem:
-
-    {
-       done: Boolean,
+       ok: Boolean,
        item: QueueItem
     }
 
-### Post worker: `postWorker` handler
+If the `QueueItem` is now ready for the next phase, this is flagged with `ok: true`. Otherwise, `ok: false` should be passed, _and some form of change made on the `QueueItem`_. For instance, a `preWorker` handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action.
 
-The `postWorker` handler is called after the `worker` is finished. It is useful for performing work that depends on the `worker` completing. For instance, persisting relationships between objects, which need the `id` of the saved `QueueItem` payload, as saved in `QueueItem.workerResult`.
+If the handler has a critical error, it should reject the promise and pass only the error.
 
-It must also return a promise which resolves to an object with a new QueueItem:
+A `QueueItem` will be locked out of processing until it is changed if
 
-    {
-       done: Boolean,
-       item: QueueItem
-    }
+* `ok: false` is resolved from the handler promise and no change was made to the `QueueItem`
+* a handler promise is rejected with an error
 
-Once a `postWorker` handler resolves to an object with `done: true`, the associated `QueueItem` will be regarded as successfully processed, and removed from the queue. Christmas!
+_The only reason the handler promise should reject is a critical error._
+
+A queue item is only processed by the next handler once the preceding handler has resolved to `ok: true`. Once the post worker handler resolves in this way, the item is removed from the queue...Christmas!
 
 ## Redux integration
 
 Import the queue middleware to control the queue with redux actions, then apply it in your code:
 
     import { createStore, applyMiddleware } from 'redux'
-    import { Queue, workerQueueMiddleware } from 'redux-worker-queue';
+    import { Queue, getWorkerQueueMiddleware } from 'redux-worker-queue';
 
     import myAwesomeReducer from './reducers';
     import {
@@ -113,7 +97,7 @@ Import the queue middleware to control the queue with redux actions, then apply 
     // Create your store with workerQueueMiddleware applied
     let store = createStore(
       myAwesomeReducer,
-      applyMiddleware(workerQueueMiddleware)
+      applyMiddleware(getWorkerQueueMiddleware())
     );
 
     // We want to save Buster!
@@ -124,7 +108,6 @@ Import the queue middleware to control the queue with redux actions, then apply 
 
     // Add Buster to the queue with a redux action
     const addBusterAction = myQueue.actions.addOrUpdateItem({
-      workerAction: 'CREATE',
       type: 'PET',
       payload: myPet,
     });

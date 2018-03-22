@@ -11,7 +11,6 @@ import 'jest';
 import { IOtherAction } from '../duck';
 
 const queueItem: INewQueueItem = {
-  workerAction: 'PICK_NOSE',
   type: 'SNOT',
   payload: {
     consistency: 'stringy',
@@ -76,7 +75,6 @@ describe('QUEUE duck', () => {
     const state: ItemQueue = [];
     const queueItem: INewQueueItem = {
       type: 'SNOT',
-      workerAction: 'PICK',
       payload: {},
     };
     const randomAction: IOtherAction = { type: ActionTypeKeys.OTHER };

@@ -1,6 +1,7 @@
 import { isString, isFunction, orderBy } from 'lodash';
-import { IQueueItem, ItemType, ClientMutationId } from '../item';
-import { addOrUpdateItem, removeItem } from './duck';
+import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from '../item';
+import { addOrUpdateItem, removeItem, __clearQueue__ } from './duck';
+import { store } from '../main';
 
 export let INSTANCE: Queue;
 const DEFAULT_NAME = 'workerQueue';
@@ -67,6 +68,7 @@ class Queue {
   readonly actions = {
     addOrUpdateItem,
     removeItem,
+    __clearQueue__,
   };
 
   public registerQueueItemType(
@@ -113,6 +115,15 @@ class Queue {
   }
   public get order(): IQueueOrderSettings {
     return this.settings.order;
+  }
+  public addOrUpdateQueueItem(item: IQueueItem | INewQueueItem) {
+    store.dispatch(this.actions.addOrUpdateItem(item));
+  }
+  public removeItem(clientMutationId: ClientMutationId) {
+    store.dispatch(this.actions.removeItem(clientMutationId));
+  }
+  public clearQueue() {
+    store.dispatch(this.actions.__clearQueue__());
   }
 }
 

@@ -1,5 +1,5 @@
 import shortid from 'shortid';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, pick } from 'lodash';
 
 export type ItemType = string;
 
@@ -9,15 +9,13 @@ type ItemErrors = Error[] | Object[] | String[];
 export interface INewQueueItem {
   readonly type: ItemType;
   readonly payload: object;
-  readonly workerAction: string;
   readonly meta?: object;
-  readonly errors?: ItemErrors;
+  readonly clientMutationId?: ClientMutationId;
 }
 
 export interface IQueueItem {
   readonly type: ItemType;
   readonly payload: object;
-  readonly workerAction: string;
   readonly meta: object;
   readonly errors: ItemErrors;
   readonly clientMutationId: ClientMutationId;
@@ -27,13 +25,12 @@ export interface IQueueItem {
 export class QueueItem implements IQueueItem {
   readonly type: ItemType = '';
   readonly payload: object = {};
-  readonly workerAction: string = '';
   readonly meta: object = {};
   readonly errors: ItemErrors = [];
   readonly clientMutationId: ClientMutationId = shortid.generate();
   readonly createdAt: string = new Date().toJSON();
 
   constructor(item: INewQueueItem | IQueueItem) {
-    Object.assign(this, cloneDeep(item));
+    Object.assign(this, pick(cloneDeep(item), Object.keys(this)));
   }
 }

@@ -1,5 +1,6 @@
 import Queue, { IQueueOptions } from './Queue';
-import { IQueueItem } from '../item';
+import { IQueueItem, INewQueueItem } from '../item';
+import { addOrUpdateItem } from './duck';
 import 'jest';
 
 describe('Queue', () => {
@@ -94,6 +95,49 @@ describe('Queue', () => {
       });
       test('removeItem() exists', () => {
         expect(newQueue.actions.removeItem).toBeDefined();
+      });
+      test('__clearQueue__() exists', () => {
+        expect(newQueue.actions.__clearQueue__).toBeDefined();
+      });
+    });
+
+    describe('direct item management:', () => {
+      test('addOrUpdateQueueItem() calls the addOrUpdateQueueItem action creator', () => {
+        expect(newQueue.addOrUpdateQueueItem).toBeDefined();
+
+        const spy = jest.spyOn(newQueue.actions, 'addOrUpdateItem');
+        const queueItem: INewQueueItem = {
+          type: 'SNOT',
+          payload: {
+            consistency: 'stringy',
+          },
+        };
+
+        newQueue.addOrUpdateQueueItem(queueItem);
+        expect(spy).toHaveBeenCalled();
+
+        spy.mockReset();
+        spy.mockRestore();
+      });
+      test('removeItem() calls the removeItem action creator', () => {
+        expect(newQueue.removeItem).toBeDefined();
+        const spy = jest.spyOn(newQueue.actions, 'removeItem');
+
+        newQueue.removeItem('wrsdxc');
+        expect(spy).toHaveBeenCalled();
+
+        spy.mockReset();
+        spy.mockRestore();
+      });
+      test('clearQueue() calls the __clearQueue__ action creator', () => {
+        expect(newQueue.clearQueue).toBeDefined();
+        const spy = jest.spyOn(newQueue.actions, '__clearQueue__');
+
+        newQueue.clearQueue();
+        expect(spy).toHaveBeenCalled();
+
+        spy.mockReset();
+        spy.mockRestore();
       });
     });
 
