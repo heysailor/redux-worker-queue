@@ -4,7 +4,6 @@ import { addOrUpdateItem, removeItem, __clearQueue__ } from './duck';
 import { store } from '../main';
 
 export let INSTANCE: Queue;
-const DEFAULT_NAME = 'workerQueue';
 
 // TODO - import from other file
 type Handler = (item: IQueueItem) => Promise<{}>;
@@ -29,7 +28,6 @@ interface IQueueOrderSettings {
 
 // Test parameter allows for instantiation
 export interface IQueueOptions {
-  name?: string;
   order?: {
     by?: QueueOrderByOptions;
     direction?: QueueOrderDirectionOptions;
@@ -37,16 +35,13 @@ export interface IQueueOptions {
 }
 
 interface IQueueSettings {
-  name: string;
   order: IQueueOrderSettings;
 }
 
 class Queue {
   constructor(opts?: IQueueOptions) {
-    const name = (opts && opts.name) || DEFAULT_NAME;
-
     if (INSTANCE) {
-      throw new Error(`A queue exists already with the name "${name}".`);
+      throw new Error(`A queue exists already`);
     }
     // Bit clunky, as all values may be undefined.
     this.settings = {
@@ -57,7 +52,6 @@ class Queue {
             ? opts.order.direction
             : 'asc',
       },
-      name,
     };
 
     INSTANCE = this;
@@ -109,9 +103,6 @@ class Queue {
   }
   public getHandlersForType(type: ItemType): IHandlers {
     return this._handlers[type];
-  }
-  public get name(): string {
-    return this.settings.name;
   }
   public get order(): IQueueOrderSettings {
     return this.settings.order;

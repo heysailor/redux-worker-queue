@@ -13,14 +13,14 @@ describe('Queue', () => {
   });
 
   test('allows only instance to be created', () => {
-    function newWithNoNameSpecified() {
+    function another() {
       const another = new Queue();
     }
-    function newWithAnotherNameSpecified() {
-      const another2 = new Queue({ name: 'boo' });
+    function again() {
+      const another2 = new Queue();
     }
-    expect(newWithNoNameSpecified).toThrowError();
-    expect(newWithAnotherNameSpecified).toThrowError();
+    expect(another).toThrowError();
+    expect(again).toThrowError();
   });
 
   describe('methods', () => {
@@ -75,20 +75,6 @@ describe('Queue', () => {
     });
   });
   describe('properties', () => {
-    describe('name', () => {
-      test('returns the default queue name "workerQueue" when queue instantiated without a name', () => {
-        expect(newQueue.name).toEqual('workerQueue');
-      });
-
-      // Can't easily test without removing one-instance block
-      // test('returns the provided queue name when queue instantiated with a name option', () => {
-      //   const newQueue = new Queue({
-      //     name: 'boo',
-      //   });
-      //   expect(newQueue.name).toEqual('boo');
-      // });
-    });
-
     describe('action creator linking', () => {
       test('addOrUpdateItem() exists', () => {
         expect(newQueue.actions.addOrUpdateItem).toBeDefined();

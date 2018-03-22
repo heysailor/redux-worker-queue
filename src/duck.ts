@@ -1,5 +1,5 @@
 import { combineReducers, Reducer } from 'redux';
-import { ItemQueue } from './queue';
+import { ItemQueue, INSTANCE } from './queue';
 import queueReducer, {
   IAddOrUpdateItemAction,
   IRemoveItemAction,
@@ -24,8 +24,12 @@ export interface IRootState extends StoreEnhancerState {
   queue: ItemQueue;
 }
 
-const rootReducer: Reducer<IRootState> = combineReducers({
+const base = combineReducers({
   queue: queueReducer,
+});
+
+const rootReducer: Reducer<IRootState> = combineReducers({
+  workerQueue: base,
 });
 
 export default rootReducer;

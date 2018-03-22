@@ -10,7 +10,7 @@ Redux powered as standalone module, alternatively use middleware to act on speci
 
 ### 1. Initialization
 
-Import the Queue constructor, and initialize with an optional settings.
+Import the `Queue` constructor, and initialize the queue.
 
     import { Queue } from 'redux-worker-queue';
 
@@ -19,13 +19,13 @@ Import the Queue constructor, and initialize with an optional settings.
 
 ### 2. Register your queue handlers
 
-Call `registerQueueItemType()` with a `preWorker`, `worker` and `postWorker` as asynchronous `QueueItem` handlers for each `type` of object that will be on the queue.
+Call `registerQueueItemType()` with arguments `type` of `QueueItem`, and `preWorker`, `worker` and `postWorker` asynchronous handlers for each phase of the queue process.
 
     myQueue.registerQueueItemType(
-      type: 'PET',
-      preWorker: isMyPetValidAsync,
-      worker: saveMyPetAsync,
-      postWorker: linkMyPetsAsync
+      'PET',
+      isMyPetValidAsync,
+      saveMyPetAsync,
+      linkMyPetsAsync
     )
 
 ### 3. Add an item to the queue
@@ -88,10 +88,10 @@ Import the queue middleware to control the queue with redux actions, then apply 
 
     // Register queue handlers as usual
     myQueue.registerQueueItemType(
-      type: 'PET',
-      preWorker: isMyPetValidAsync,
-      worker: saveMyPetAsync,
-      postWorker: linkMyPetsAsync
+      'PET',
+      isMyPetValidAsync,
+      saveMyPetAsync,
+      linkMyPetsAsync
     )
 
     // Create your store with workerQueueMiddleware applied
@@ -114,3 +114,91 @@ Import the queue middleware to control the queue with redux actions, then apply 
 
     // Done!
     store.dispatch(addBusterAction);
+
+## API
+
+### `Queue` constructor
+
+Returns the queue coordinator instance. Allows only one instance to be made.
+
+Takes an optional settings object:
+
+    {
+      order?: {
+        by?: 'createdAt|clientMutationId,
+        direction?: 'asc'|'desc',
+      }
+    }
+
+#### `Queue.registerQueueItemType`
+
+Must be called at least once to register a type of `QueueItem` to be placed on the queue, and handlers for that type.
+
+    myQueue.registerQueueItemType(
+      type: String,
+      preWorker: async Function,
+      worker: async Function,
+      postWorker: async Function
+    )
+
+#### `Queue.getHandlersForType`
+
+    myQueue.getHandlersForType(
+      type: String,
+    )
+
+Returns the handlers for the specified `QueueItem` type.
+
+#### `Queue.order`
+
+The ordering settings of the queue.
+
+#### `Queue.addOrUpdateQueueItem`
+
+    myQueue.addOrUpdateQueueItem(
+      item: QueueItem | NewQueueItem
+    )
+
+Called to add a new item to the queue, or update an existing one. See QueueItem and NewQueueItem.
+
+#### `Queue.removeItem`
+
+    myQueue.removeItem(
+      clientMutationId: String
+    )
+
+Called to remove QueueItem from the queue, as identified by its clientMutationId property.
+
+#### `Queue.clearQueue`
+
+    myQueue.clearQueue()
+
+_Danger!_ Wipes the queue.
+
+### Data types
+
+These should be treated as immutable.
+
+#### NewQueueItem
+
+Can be used to make a brand new `QueueItem`. If not set, `clientMutationId` is automatically generated.
+
+    NewQueueItem {
+      type: String;
+      payload: object;
+      meta?: object;
+      clientMutationId?: string|number;
+    }
+
+#### QueueItem
+
+`QueueItem`s are guaranteed to have all these properties. The `createdAt` property cannot be overridden. The `clientMutationId` is the unique identifier.
+
+    export interface IQueueItem {
+      type: ItemType;
+      payload: object;
+      meta: object;
+      errors: ItemErrors;
+      clientMutationId: string|number;
+      createdAt: string;
+    }

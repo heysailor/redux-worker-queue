@@ -1,4 +1,4 @@
-import Queue from './Queue';
+import Queue, { INSTANCE } from './Queue';
 import { ItemQueue } from './duck';
 
-export { Queue, ItemQueue };
+export { Queue, ItemQueue, INSTANCE };
