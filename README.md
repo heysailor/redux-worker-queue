@@ -1,18 +1,12 @@
-Redux Worker Queue
-==================
+# Redux Worker Queue
 
-*Work in progress, only documented functions operating.*
+_Work in progress, only documented functions operating._
 
 Redux powered queue for the storage and deferred processing of objects of multiple named types. Coordinates the application of per-type custom asynchronous preWorker, worker and postWorker functions. Suited to complex deferred offline persistence handling, eg with validation, saving and linking stages.
 
-<<<<<<< HEAD
-Coordinates the application of custom asynchronous preWorker, worker and postWorker functions.
-=======
 Redux powered as standalone module, alternatively use middleware to act on specified actions.
->>>>>>> f5e041176426f500013a902e60e30c0a7e9cb9b5
 
-Quick start
------------
+## Quick start
 
 ### 1. Initialization
 
@@ -36,7 +30,7 @@ Call `registerQueueItemType()` with a `preWorker`, `worker` and `postWorker` as 
 
 ### 3. Add an item to the queue
 
-Call `addOrUpdateItem()` with a new  `payload: {}`,  
+Call `addOrUpdateItem()` with a new `payload: {}`,
 
     const myPet = {
       name: 'Buster',
@@ -50,12 +44,9 @@ Call `addOrUpdateItem()` with a new  `payload: {}`,
       payload: myPet,
     });
 
-### *...coming: 4. flush the queue*
+### _...coming: 4. flush the queue_
 
-
-
-Queue work phases and handler functions
----------------------------------------
+## Queue work phases and handler functions
 
 Each queue item is processed in three phases: pre worker, worker, and post worker. You provide a handler function for each phase for when you register a queue item type. The handler functions must return a promise with a specific resolution object as below. A queue item is only removed once the all phases are complete.
 
@@ -80,7 +71,7 @@ It must also return a promise which resolves to an object with a new QueueItem:
        done: Boolean,
        item: QueueItem
     }
-  
+
 ### Post worker: `postWorker` handler
 
 The `postWorker` handler is called after the `worker` is finished. It is useful for performing work that depends on the `worker` completing. For instance, persisting relationships between objects, which need the `id` of the saved `QueueItem` payload, as saved in `QueueItem.workerResult`.
@@ -91,13 +82,10 @@ It must also return a promise which resolves to an object with a new QueueItem:
        done: Boolean,
        item: QueueItem
     }
- 
+
 Once a `postWorker` handler resolves to an object with `done: true`, the associated `QueueItem` will be regarded as successfully processed, and removed from the queue. Christmas!
 
-
-
-Redux integration
----------------------------------------
+## Redux integration
 
 Import the queue middleware to control the queue with redux actions, then apply it in your code:
 
@@ -105,7 +93,7 @@ Import the queue middleware to control the queue with redux actions, then apply 
     import { Queue, workerQueueMiddleware } from 'redux-worker-queue';
 
     import myAwesomeReducer from './reducers';
-    import { 
+    import {
       isMyPetValidAsync,
       saveMyPetAsync,
       linkMyPetsAsync
@@ -140,6 +128,6 @@ Import the queue middleware to control the queue with redux actions, then apply 
       type: 'PET',
       payload: myPet,
     });
-    
+
     // Done!
     store.dispatch(addBusterAction);
