@@ -111,9 +111,14 @@ Import the queue middleware to control the queue with redux actions, then apply 
       type: 'PET',
       payload: myPet,
     });
+    store.dispatch(addBusterAction); // Done!
 
-    // Done!
-    store.dispatch(addBusterAction);
+    // Or, use the queue as without redux middleware,
+    // but this time it will use your store.
+    myQueue.addOrUpdateItem({
+      type: 'PET',
+      payload: myPet,
+    }); // Done as well.
 
 ## API
 
