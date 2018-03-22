@@ -117,7 +117,7 @@ Import the queue middleware to control the queue with redux actions, then apply 
 
 ## API
 
-### `Queue` constructor
+### `Queue:queue` constructor
 
 Returns the queue coordinator instance. Allows only one instance to be made.
 
@@ -130,7 +130,7 @@ Takes an optional settings object:
       }
     });
 
-#### `Queue.registerQueueItemType`
+#### `Queue.registerQueueItemType:void`
 
 Must be called at least once to register a type of `QueueItem` to be placed on the queue, and handlers for that type.
 
@@ -141,7 +141,7 @@ Must be called at least once to register a type of `QueueItem` to be placed on t
       postWorker: async Function
     )
 
-#### `Queue.getHandlersForType`
+#### `Queue.getHandlersForType:object`
 
 Returns the handlers for the specified `QueueItem` type.
 
@@ -149,11 +149,11 @@ Returns the handlers for the specified `QueueItem` type.
       type: String,
     )
 
-#### `Queue.order`
+#### `Queue.order:object`
 
 The ordering settings of the queue.
 
-#### `Queue.addOrUpdateQueueItem`
+#### `Queue.addOrUpdateQueueItem:void`
 
 Called to add a new item to the queue, or update an existing one. See QueueItem and NewQueueItem.
 
@@ -161,7 +161,7 @@ Called to add a new item to the queue, or update an existing one. See QueueItem 
       item: QueueItem | NewQueueItem
     )
 
-#### `Queue.removeItem`
+#### `Queue.removeItem:void`
 
 Called to remove QueueItem from the queue, as identified by its clientMutationId property.
 
@@ -169,7 +169,7 @@ Called to remove QueueItem from the queue, as identified by its clientMutationId
       clientMutationId: String
     )
 
-#### `Queue.clearQueue`
+#### `Queue.clearQueue:void`
 
 _Danger!_ Wipes the queue.
 
@@ -194,11 +194,11 @@ Can be used to make a brand new `QueueItem`. If not set, `clientMutationId` is a
 
 A `QueueItem` is guaranteed to have all these properties. The `createdAt` property cannot be overridden. The `clientMutationId` is the unique identifier.
 
-    export interface IQueueItem {
-      type: ItemType;
+    QueueItem {
+      type: string;
       payload: object;
       meta: object;
-      errors: ItemErrors;
+      errors: array;
       clientMutationId: string|number;
       createdAt: string;
     }
