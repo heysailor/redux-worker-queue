@@ -4,6 +4,6 @@ import {
   INewQueueItem,
   ClientMutationId,
   ItemType,
-} from './item';
+} from './Item';
 
 export { QueueItem, IQueueItem, INewQueueItem, ClientMutationId, ItemType };
