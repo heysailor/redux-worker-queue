@@ -1,4 +1,4 @@
-# Redux Worker Queue
+# Redux Worker Queue [![Build Status](https://travis-ci.org/heysailor/redux-worker-queue.svg?branch=master)](https://travis-ci.org/heysailor/redux-worker-queue)
 
 _Work in progress, only documented functions operating._
 
