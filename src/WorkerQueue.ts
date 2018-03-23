@@ -1,7 +1,8 @@
 import { isString, isFunction, orderBy, isArray, isObject } from 'lodash';
 import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from './item';
-import { addOrUpdateItem, removeItem, __clearQueue__ } from './queue/duck';
+import { addOrUpdateItem, removeItem } from './queue/duck';
 import { store } from './main';
+import { __clearQueue__ } from './duck';
 
 export let INSTANCE: WorkerQueue;
 const MAX_WORKERS = 50;
