@@ -10,6 +10,8 @@ export interface IOtherAction {
 
 export enum GlobalActionTypeKeys {
   __CLEAR__ = '__WORKER_QUEUE__CLEAR__',
+  FLUSH = '__QUEUE__FLUSH',
+  OTHER = '__any_other_action_key__',
 }
 
 export type ActionTypes =
@@ -29,9 +31,15 @@ interface StoreEnhancerState {}
 export interface I__clearQueue__Action {
   type: GlobalActionTypeKeys.__CLEAR__;
 }
-
 export function __clearQueue__(): I__clearQueue__Action {
   return { type: GlobalActionTypeKeys.__CLEAR__ };
+}
+
+export interface IFlushAction {
+  type: GlobalActionTypeKeys.FLUSH;
+}
+export function flush(): IFlushAction {
+  return { type: GlobalActionTypeKeys.FLUSH };
 }
 
 export interface IRootState extends StoreEnhancerState {

@@ -2,7 +2,7 @@ import { isString, isFunction, orderBy, isArray, isObject } from 'lodash';
 import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from './item';
 import { addOrUpdateItem, removeItem } from './queue/duck';
 import { store } from './main';
-import { __clearQueue__ } from './duck';
+import { __clearQueue__, flush } from './duck';
 
 export let INSTANCE: WorkerQueue;
 const MAX_WORKERS = 50;
@@ -84,6 +84,7 @@ class WorkerQueue {
     addOrUpdateItem,
     removeItem,
     __clearQueue__,
+    flush,
   };
 
   public registerQueueItemType(itemType: IRegisterType): boolean | Error {
@@ -118,6 +119,9 @@ class WorkerQueue {
   }
   public removeItem(clientMutationId: ClientMutationId) {
     store.dispatch(this.actions.removeItem(clientMutationId));
+  }
+  public flush() {
+    store.dispatch(this.actions.flush());
   }
   public clearQueue() {
     store.dispatch(this.actions.__clearQueue__());
