@@ -26,7 +26,7 @@ Import the `WorkerQueue` constructor, and initialize the queue with a type to ha
 
 ### 2. Add an item to the queue
 
-Call `addOrUpdateItem()` with a new `payload: {}`,
+Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the item type, and including the item as the `payload`.
 
     const myPet = {
       name: 'Buster',
