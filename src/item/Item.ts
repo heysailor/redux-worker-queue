@@ -6,6 +6,10 @@ export type ItemType = string;
 export type ClientMutationId = string | number;
 type ItemErrors = Error[] | Object[] | String[];
 
+export interface IItem {
+  clientMutationId: ClientMutationId;
+}
+
 export interface INewQueueItem {
   readonly type: ItemType;
   readonly payload: object;
@@ -13,7 +17,7 @@ export interface INewQueueItem {
   readonly clientMutationId?: ClientMutationId;
 }
 
-export interface IQueueItem {
+export interface IQueueItem extends IItem {
   readonly type: ItemType;
   readonly payload: object;
   readonly meta: object;

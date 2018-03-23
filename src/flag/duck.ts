@@ -1,6 +1,8 @@
 import { Flag, INewFlag } from './Flag';
-import { ActionTypes } from '../duck';
+import { ActionTypes, GlobalActionTypeKeys } from '../duck';
 import { IQueueItem, ClientMutationId } from '../item';
+import { uniqueItems, rejectedItems } from '../util';
+import { QueueActionTypeKeys } from '../queue';
 
 type FlagQueue = Flag[];
 
@@ -19,6 +21,11 @@ export enum FlagActionTypeKeys {
 export interface IAddOrUpdateFlag {
   type: FlagActionTypeKeys.ADD_OR_UPDATE_FLAG;
   flag: Flag;
+}
+
+export interface IRemoveFlag {
+  type: FlagActionTypeKeys.REMOVE_FLAG;
+  clientMutationId: ClientMutationId;
 }
 
 // Actions
@@ -53,9 +60,30 @@ export function removeFlag(clientMutationId: ClientMutationId) {
 
 // Reducer
 
-export default function flags(
+export default function flag(
   state: FlagQueue = initialState,
   action: ActionTypes
 ): FlagQueue {
+  switch (action.type) {
+    case FlagActionTypeKeys.ADD_OR_UPDATE_FLAG: {
+      return uniqueItems([action.flag, ...state]);
+    }
+    case FlagActionTypeKeys.REMOVE_FLAG: {
+      return rejectedItems(state, action.clientMutationId);
+    }
+    case GlobalActionTypeKeys.__CLEAR__: {
+      return initialState;
+    }
+  }
   return initialState;
 }
+
+// case QueueActionTypeKeys.ADD_OR_UPDATE_ITEM: {
+//   return orderedItems(uniqueItems([action.item, ...state]));
+// }
+// case QueueActionTypeKeys.REMOVE_ITEM: {
+//   return rejectedItems(state, action.clientMutationId);
+// }
+// case QueueActionTypeKeys.__CLEAR__: {
+//   return [];
+// }
