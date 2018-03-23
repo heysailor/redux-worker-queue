@@ -77,13 +77,3 @@ export default function flag(
   }
   return initialState;
 }
-
-// case QueueActionTypeKeys.ADD_OR_UPDATE_ITEM: {
-//   return orderedItems(uniqueItems([action.item, ...state]));
-// }
-// case QueueActionTypeKeys.REMOVE_ITEM: {
-//   return rejectedItems(state, action.clientMutationId);
-// }
-// case QueueActionTypeKeys.__CLEAR__: {
-//   return [];
-// }
