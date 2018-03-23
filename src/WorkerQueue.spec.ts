@@ -127,6 +127,16 @@ describe('WorkerQueue', () => {
         spy.mockReset();
         spy.mockRestore();
       });
+      test('flush() calls the flush action creator', () => {
+        expect(newQueue.flush).toBeDefined();
+        const spy = jest.spyOn(newQueue.actions, 'flush');
+
+        newQueue.flush();
+        expect(spy).toHaveBeenCalled();
+
+        spy.mockReset();
+        spy.mockRestore();
+      });
     });
 
     describe('order', () => {
