@@ -1,10 +1,6 @@
 import { combineReducers, Reducer } from 'redux';
 import { ItemQueue } from './queue';
-import queue, {
-  IAddOrUpdateItemAction,
-  IRemoveItemAction,
-  I__clearQueue__Action,
-} from './queue/duck';
+import queue, { IAddOrUpdateItemAction, IRemoveItemAction } from './queue/duck';
 import flag, { IAddOrUpdateFlag, IRemoveFlag } from './flag/duck';
 
 // Not mistake - covers unknown actions from other unknown code.
