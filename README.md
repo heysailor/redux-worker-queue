@@ -2,7 +2,7 @@
 
 _Work in progress, only documented functions operating._
 
-Redux powered queue for the storage and deferred processing of objects of multiple named types. Coordinates the application of per-type custom asynchronous preWorker, worker and postWorker functions. Suited to complex deferred offline persistence handling, eg with validation, saving and linking stages.
+Redux powered queue for the storage and deferred processing of objects of multiple named types. Coordinates the application of per-type custom handler functions. Suited to complex deferred offline persistence handling, eg with validation, saving and linking stages.
 
 Redux powered as standalone module, alternatively use middleware to act on specified actions.
 
@@ -10,25 +10,21 @@ Redux powered as standalone module, alternatively use middleware to act on speci
 
 ### 1. Initialization
 
-Import the `WorkerQueue` constructor, and initialize the queue.
+Import the `WorkerQueue` constructor, and initialize the queue with a type to handle.
 
     import { WorkerQueue } from 'redux-worker-queue';
 
     // Initialise queue
-    const myQueue = new WorkerQueue();
+    const petType = {
+      type: 'PET',
+      handlers: [
+        isMyPetValidAsync,
+        saveMyPetAsync,
+      ]
+    }
+    const myQueue = new WorkerQueue(petType);
 
-### 2. Register your queue handlers
-
-Call `registerQueueItemType()` with arguments `type` of `QueueItem`, and `preWorker`, `worker` and `postWorker` asynchronous handlers for each phase of the queue process.
-
-    myQueue.registerQueueItemType(
-      'PET',
-      isMyPetValidAsync,
-      saveMyPetAsync,
-      linkMyPetsAsync
-    )
-
-### 3. Add an item to the queue
+### 2. Add an item to the queue
 
 Call `addOrUpdateItem()` with a new `payload: {}`,
 
@@ -43,31 +39,35 @@ Call `addOrUpdateItem()` with a new `payload: {}`,
       payload: myPet,
     });
 
-### _...coming: 4. flush the queue_
+### _...coming: 3. flush the queue_
 
-## WorkerQueue work phases and handler functions
+## Handlers
 
-Each queue item is processed in three phases: pre worker, worker, and post worker. You provide a handler function for each phase when you register a queue item type.
+The handlers provided to the queue for each type are applied a the QueueItem in order of their registration. Each handler can block progression to the next.
 
-The handler functions must return a promise, which should generally resolve as below:
+The handler functions must take a QueueItem as their sole argument, and return a promise, which should generally resolve as below:
 
     {
        ok: Boolean,
        item: QueueItem
     }
 
-If the `QueueItem` is now ready for the next phase, this is flagged with `ok: true`. Otherwise, `ok: false` should be passed, _and some form of change made on the `QueueItem`_. For instance, a `preWorker` handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action.
+If the `QueueItem` is now ready for the next handler, this is flagged with `ok: true`. Otherwise, `ok: false` should be passed, _and some form of change made on the `QueueItem`_. For example, a validation handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action.
 
 If the handler has a critical error, it should reject the promise and pass only the error.
 
-A `QueueItem` will be locked out of processing until it is changed if
+A `QueueItem` will be _locked out_ of processing until it is changed if
 
-* `ok: false` is resolved from the handler promise and no change was made to the `QueueItem`
+* `ok: false` is resolved from the handler promise and no change was made to the `QueueItem`, or
 * a handler promise is rejected with an error
 
 _The only reason the handler promise should reject is a critical error._
 
-A queue item is only processed by the next handler once the preceding handler has resolved to `ok: true`. Once the post worker handler resolves in this way, the item is removed from the queue...Christmas!
+A queue item is only processed by the next handler once the preceding handler has resolved to `ok: true`. Once the last handler resolves in this way, the item is removed from the queue...Christmas!
+
+## Workers
+
+One or more workers process the queue, applying the correct handler for the QueueItem. The number of concurrent workers can be set in the initialization options or with `WorkerQueue.workers`.
 
 ## Redux integration
 
@@ -126,27 +126,17 @@ Import the queue middleware to control the queue with redux actions, then apply 
 
 Called first to initialize the queue. Returns the queue coordinator instance. Allows only one instance to be made.
 
-Takes an optional settings object:
+Takes a single `TypeRegistration` or array of `TypeRegistration` objects, and an optional `Settings` object.
 
-    myQueue = new WorkerQueue({
-      order?: {
-        by?: 'createdAt|clientMutationId,
-        direction?: 'asc'|'desc',
-      }
-    });
+    const myQueue = new WorkerQueue(TypeRegistraton|[TypeRegistration],Settings?);
 
-#### `WorkerQueue.registerQueueItemType:void`
+#### `WorkerQueue.registerQueueItemType():void`
 
-Must be called at least once to register a type of `QueueItem` to be placed on the queue, and handlers for that type.
+Takes a single `TypeRegistration` object to register a type of `QueueItem`, and handlers for that type.
 
-    myQueue.registerQueueItemType(
-      type: String,
-      preWorker: async Function,
-      worker: async Function,
-      postWorker: async Function
-    )
+    myQueue.registerQueueItemType(TypeRegistration)
 
-#### `WorkerQueue.addOrUpdateQueueItem:QueueItem`
+#### `WorkerQueue.addOrUpdateQueueItem():QueueItem`
 
 Called to add a new item to the queue, or update an existing one. See QueueItem and NewQueueItem.
 
@@ -154,37 +144,54 @@ Called to add a new item to the queue, or update an existing one. See QueueItem 
       item: QueueItem | NewQueueItem
     )
 
-#### `WorkerQueue.getHandlersForType:object`
+#### `WorkerQueue.getHandlersForType():object`
 
 Returns the handlers for the specified `QueueItem` type.
 
-    myQueue.getHandlersForType(
-      type: String,
-    )
+    myQueue.getHandlersForType(type: String)
 
-#### `WorkerQueue.order:object`
+#### `WorkerQueue.removeItem():void`
 
-The ordering settings of the queue.
+Called to remove `QueueItem` from the queue, as identified by its clientMutationId property.
 
-#### `WorkerQueue.removeItem:void`
+    myQueue.removeItem(clientMutationId: string)
 
-Called to remove QueueItem from the queue, as identified by its clientMutationId property.
-
-    myQueue.removeItem(
-      clientMutationId: String
-    )
-
-#### `WorkerQueue.clearQueue:void`
+#### `WorkerQueue.clearQueue():void`
 
 _Danger!_ Wipes the queue.
 
     myQueue.clearQueue()
 
+#### `WorkerQueue.order:object`
+
+The ordering settings of the queue.
+
+#### `WorkerQueue.workers:number`
+
+Set this to the number of workers required.
+
 ### Data types
 
-These should be treated as immutable.
+#### `TypeRegistration`
 
-#### NewQueueItem
+    {
+      type: string,
+      handlers: [
+        Function<Promise>,
+      ]
+    }
+
+#### `Settings`
+
+    {
+      order?: {
+        by?: 'createdAt|clientMutationId,
+        direction?: 'asc'|'desc',
+      }
+      workers?: number
+    }
+
+#### `NewQueueItem`
 
 Can be used to make a brand new `QueueItem`. If not set, `clientMutationId` is automatically generated.
 
@@ -195,7 +202,7 @@ Can be used to make a brand new `QueueItem`. If not set, `clientMutationId` is a
       clientMutationId?: string|number;
     }
 
-#### QueueItem
+#### `QueueItem`
 
 A `QueueItem` is guaranteed to have all these properties. The `createdAt` property cannot be overridden. The `clientMutationId` is the unique identifier.
 

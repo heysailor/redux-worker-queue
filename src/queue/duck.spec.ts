@@ -14,6 +14,16 @@ import 'jest';
 // https://stackoverflow.com/a/47311830/2779264
 jest.mock('../main'); // ie the redux store
 
+const handler = (type: IQueueItem) =>
+  new Promise((resolve, reject) => {
+    resolve(true);
+  });
+
+const handlerType = {
+  type: 'PETS',
+  handlers: [handler],
+};
+
 describe('QUEUE duck', () => {
   const queueItem: INewQueueItem = {
     type: 'SNOT',
@@ -22,7 +32,7 @@ describe('QUEUE duck', () => {
     },
   };
   // Initialise queue
-  const workerQueue = new WorkerQueue();
+  const workerQueue = new WorkerQueue([handlerType]);
   describe('Actions', () => {
     describe('addOrUpdateItem()', () => {
       test('it exists', () => {

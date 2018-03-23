@@ -1,22 +1,21 @@
-import { isString, isFunction, orderBy } from 'lodash';
+import { isString, isFunction, orderBy, isArray, isObject } from 'lodash';
 import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from './item';
 import { addOrUpdateItem, removeItem, __clearQueue__ } from './queue/duck';
 import { store } from './main';
 
 export let INSTANCE: WorkerQueue;
+const MAX_WORKERS = 50;
 
 // TODO - import from other file
 type Handler = (item: IQueueItem) => Promise<{}>;
-
-interface IHandlers {
-  preWorker: Handler;
-  worker: Handler;
-  postWorker: Handler;
-}
-
-interface IRegisteredHandlers {
+type IHandlers = Handler[];
+interface IHandlersForItemType {
   [key: string]: IHandlers;
 }
+type IRegisterType = {
+  type: ItemType;
+  handlers: IHandlers;
+};
 
 type QueueOrderByOptions = ('createdAt' | 'clientMutationId')[];
 type QueueOrderDirectionOptions = 'asc' | 'desc';
@@ -32,6 +31,7 @@ export interface IWorkerQueueOptions {
     by?: QueueOrderByOptions;
     direction?: QueueOrderDirectionOptions;
   };
+  workers?: number;
 }
 
 interface IWorkerQueueSettings {
@@ -39,9 +39,18 @@ interface IWorkerQueueSettings {
 }
 
 class WorkerQueue {
-  constructor(opts?: IWorkerQueueOptions) {
+  constructor(
+    types: IRegisterType | IRegisterType[],
+    opts?: IWorkerQueueOptions
+  ) {
     if (INSTANCE) {
       throw new Error(`A queue exists already`);
+    }
+
+    if (!types || (!isArray(types) && !isObject(types))) {
+      throw new Error(
+        `Must provide at least one QueueItem type with one handler.`
+      );
     }
     // Bit clunky, as all values may be undefined.
     this.settings = {
@@ -54,46 +63,42 @@ class WorkerQueue {
       },
     };
 
+    if (opts && opts.workers) {
+      this._workers = opts.workers;
+    }
+
+    if (isArray(types)) {
+      types.map(reg => this.registerQueueItemType(reg));
+    } else {
+      this.registerQueueItemType(types);
+    }
+
     INSTANCE = this;
   }
 
+  private _workers: number = 1;
   readonly settings: IWorkerQueueSettings;
-  readonly _handlers: IRegisteredHandlers = {};
+  readonly _handlers: IHandlersForItemType = {};
   readonly actions = {
     addOrUpdateItem,
     removeItem,
     __clearQueue__,
   };
 
-  public registerQueueItemType(
-    type: ItemType,
-    preWorker: Handler,
-    worker: Handler,
-    postWorker: Handler
-  ): boolean | Error {
-    if (!type || !isString(type)) {
+  public registerQueueItemType(itemType: IRegisterType): boolean | Error {
+    if (!itemType || !isString(itemType.type)) {
       throw new Error('Must supply itemType string to register for queue');
     }
-    if (!preWorker || !isFunction(preWorker)) {
+    if (
+      !isArray(itemType.handlers) ||
+      !itemType.handlers.length ||
+      !itemType.handlers.every(isFunction)
+    ) {
       throw new Error(
-        `Must supply preWorker function for this queue item type ${type}`
+        `Bad or missing handler function for queue item type ${itemType.type}`
       );
     }
-    if (!worker || !isFunction(worker)) {
-      throw new Error(
-        `Must supply worker function for this queue item type ${type}`
-      );
-    }
-    if (!postWorker || !isFunction(postWorker)) {
-      throw new Error(
-        `Must supply postWorker function for this queue item type ${type}`
-      );
-    }
-    this.addHandlers(type, {
-      preWorker,
-      worker,
-      postWorker,
-    });
+    this.addHandlers(itemType.type, itemType.handlers);
 
     return true;
   }
@@ -115,6 +120,15 @@ class WorkerQueue {
   }
   public clearQueue() {
     store.dispatch(this.actions.__clearQueue__());
+  }
+  public get workers(): number {
+    return this._workers;
+  }
+  public set workers(count) {
+    if (count > MAX_WORKERS) {
+      throw new Error(`Max allowed workers is ${MAX_WORKERS}`);
+    }
+    this._workers = count;
   }
 }
 
