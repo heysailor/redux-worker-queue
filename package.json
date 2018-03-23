@@ -1,8 +1,7 @@
 {
   "name": "redux-worker-queue",
   "version": "0.1.0",
-  "description":
-    "WIP. Redux powered queue for the processing of objects via customisable workers, with persistence, validation and linking capability. Suited to complex deferred offline persistence handling.",
+  "description": "WIP. Redux powered queue for the processing of objects via customisable workers, with persistence, validation and linking capability. Suited to complex deferred offline persistence handling.",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -14,6 +13,7 @@
   "devDependencies": {
     "@types/jest": "^22.2.0",
     "@types/lodash": "^4.14.105",
+    "@types/md5": "^2.1.32",
     "@types/shortid": "^0.0.29",
     "jest": "^22.4.2",
     "ts-jest": "^22.4.2",
@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.5",
+    "md5": "^2.2.1",
     "redux": "^3.7.2",
     "redux-saga": "^0.16.0",
     "reselect": "^3.0.1",
@@ -32,7 +33,17 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
-    "testPathIgnorePatterns": ["node_modules", "lib/.*"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testPathIgnorePatterns": [
+      "node_modules",
+      "lib/*.*"
+    ]
   }
 }

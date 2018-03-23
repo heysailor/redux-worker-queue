@@ -2,7 +2,7 @@ import queueReducer, {
   addOrUpdateItem,
   removeItem,
   __clearQueue__,
-  ActionTypeKeys,
+  QueueActionTypeKeys,
   ItemQueue,
 } from './duck';
 import WorkerQueue from '../WorkerQueue';
@@ -14,6 +14,16 @@ import 'jest';
 // https://stackoverflow.com/a/47311830/2779264
 jest.mock('../main'); // ie the redux store
 
+const handler = (type: IQueueItem) =>
+  new Promise((resolve, reject) => {
+    resolve(true);
+  });
+
+const handlerType = {
+  type: 'PETS',
+  handlers: [handler],
+};
+
 describe('QUEUE duck', () => {
   const queueItem: INewQueueItem = {
     type: 'SNOT',
@@ -22,7 +32,7 @@ describe('QUEUE duck', () => {
     },
   };
   // Initialise queue
-  const workerQueue = new WorkerQueue();
+  const workerQueue = new WorkerQueue([handlerType]);
   describe('Actions', () => {
     describe('addOrUpdateItem()', () => {
       test('it exists', () => {
@@ -39,7 +49,7 @@ describe('QUEUE duck', () => {
         const action = addOrUpdateItem(existingItem);
         expect(action).toBeDefined();
         expect(action).toMatchObject({
-          type: ActionTypeKeys.ADD_OR_UPDATE_ITEM,
+          type: QueueActionTypeKeys.ADD_OR_UPDATE_ITEM,
           item: existingItem,
         });
       });
@@ -51,7 +61,7 @@ describe('QUEUE duck', () => {
         test('it takes a clientMutationId and makes an action with REMOVE_ITEM actionType and matching clientMutationId', () => {
           const action = removeItem(clientMutationId);
           expect(action).toMatchObject({
-            type: ActionTypeKeys.REMOVE_ITEM,
+            type: QueueActionTypeKeys.REMOVE_ITEM,
             clientMutationId,
           });
         });
@@ -63,7 +73,7 @@ describe('QUEUE duck', () => {
         test('it makes an action with CLEAR actionType', () => {
           const action = __clearQueue__();
           expect(action).toMatchObject({
-            type: ActionTypeKeys.__CLEAR__,
+            type: QueueActionTypeKeys.__CLEAR__,
           });
         });
       });
@@ -75,7 +85,7 @@ describe('QUEUE duck', () => {
       type: 'SNOT',
       payload: {},
     };
-    const randomAction: IOtherAction = { type: ActionTypeKeys.OTHER };
+    const randomAction: IOtherAction = { type: QueueActionTypeKeys.OTHER };
     test('it exists', () => {
       expect(queueReducer).toBeDefined();
       expect(queueReducer).toBeInstanceOf(Function);

@@ -3,74 +3,76 @@ import { IQueueItem, INewQueueItem } from './item';
 import { addOrUpdateItem } from './queue/duck';
 import 'jest';
 
+const initialWorkerCount = 2;
+const handler = (type: IQueueItem) =>
+  new Promise((resolve, reject) => {
+    resolve(true);
+  });
+
 describe('WorkerQueue', () => {
+  const newQueue = new WorkerQueue(
+    {
+      type: 'PETS',
+      handlers: [handler],
+    },
+    {
+      workers: initialWorkerCount,
+    }
+  );
+
   test('loads', () => {
     expect(WorkerQueue).toBeTruthy();
   });
-  const newQueue = new WorkerQueue();
-  test('is a class', () => {
+  test('is a class which instantiates', () => {
     expect(newQueue).toBeInstanceOf(WorkerQueue);
   });
 
   test('allows only instance to be created', () => {
     function another() {
-      const another = new WorkerQueue();
-    }
-    function again() {
-      const another2 = new WorkerQueue();
+      const another = new WorkerQueue({
+        type: 'HUMANS',
+        handlers: [handler],
+      });
     }
     expect(another).toThrowError();
-    expect(again).toThrowError();
+  });
+
+  test('sets its worker count on initialisation with options', () => {
+    expect(newQueue.workers).toEqual(initialWorkerCount);
+  });
+
+  test('worker property can be set to a maximum', () => {
+    function tooMany() {
+      newQueue.workers = 60;
+    }
+    expect(tooMany).toThrowError();
+    expect(newQueue.workers).toEqual(initialWorkerCount);
+    newQueue.workers = 5;
+    expect(newQueue.workers).toEqual(5);
   });
 
   describe('methods', () => {
-    describe('registerQueueItemType()', () => {
-      test('exists', () => {
-        expect(newQueue.registerQueueItemType).toBeDefined();
-      });
-
-      test('returns true when called with 4 arguments: (type: string, preWorker: func, worker: func, postWorker: func)', () => {
-        const type = 'TYPE';
-        const item = { type };
-        const handler = (type: IQueueItem) =>
-          new Promise((resolve, reject) => {
-            resolve(true);
-          });
-        const preWorker = handler;
-        const postWorker = handler;
-        const worker = handler;
-        expect(
-          newQueue.registerQueueItemType(type, worker, preWorker, postWorker)
-        ).toBeTruthy();
-      });
-    });
-
     describe('getHandlersForType()', () => {
       test('takes a itemType string as its argument', () => {
         expect(newQueue.getHandlersForType('srhaf')).toBeUndefined();
       });
 
-      test('returns a handlers object when called with a corresponding itemType string', () => {
-        const type = 'TYPE';
-        const item = { type };
-        const handler = (type: IQueueItem) =>
+      test('returns a handlers array when called with a corresponding itemType string', () => {
+        const type = 'HUMANS';
+        const humanHandler = (type: IQueueItem) =>
           new Promise((resolve, reject) => {
             resolve(true);
           });
-        const preWorker = handler;
-        const postWorker = handler;
-        const worker = handler;
-
-        newQueue.registerQueueItemType(type, worker, preWorker, postWorker);
+        newQueue.registerQueueItemType({
+          type,
+          handlers: [handler, humanHandler],
+        });
         const handlers = newQueue.getHandlersForType(type);
 
         expect(handlers).toBeDefined();
-        expect(handlers.preWorker).toBeDefined();
-        expect(handlers.worker).toBeDefined();
-        expect(handlers.postWorker).toBeDefined();
-        expect(handlers.worker).toBeInstanceOf(Function);
-        expect(handlers.preWorker).toBeInstanceOf(Function);
-        expect(handlers.postWorker).toBeInstanceOf(Function);
+        expect(handlers).toBeInstanceOf(Array);
+        expect(handlers[0]).toBeDefined();
+        expect(handlers[1]).toEqual(humanHandler);
       });
     });
   });
