@@ -5,7 +5,7 @@ import queueReducer, {
   ActionTypeKeys,
   ItemQueue,
 } from './duck';
-import Queue from './Queue';
+import WorkerQueue from '../WorkerQueue';
 import { IOtherAction } from '../duck';
 import { QueueItem, INewQueueItem, IQueueItem } from '../item';
 import 'jest';
@@ -22,7 +22,7 @@ describe('QUEUE duck', () => {
     },
   };
   // Initialise queue
-  const workerQueue = new Queue();
+  const workerQueue = new WorkerQueue();
   describe('Actions', () => {
     describe('addOrUpdateItem()', () => {
       test('it exists', () => {

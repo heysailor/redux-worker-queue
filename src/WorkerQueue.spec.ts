@@ -1,23 +1,23 @@
-import Queue, { IQueueOptions } from './Queue';
-import { IQueueItem, INewQueueItem } from '../item';
-import { addOrUpdateItem } from './duck';
+import WorkerQueue, { IWorkerQueueOptions } from './WorkerQueue';
+import { IQueueItem, INewQueueItem } from './item';
+import { addOrUpdateItem } from './queue/duck';
 import 'jest';
 
-describe('Queue', () => {
+describe('WorkerQueue', () => {
   test('loads', () => {
-    expect(Queue).toBeTruthy();
+    expect(WorkerQueue).toBeTruthy();
   });
-  const newQueue = new Queue();
+  const newQueue = new WorkerQueue();
   test('is a class', () => {
-    expect(newQueue).toBeInstanceOf(Queue);
+    expect(newQueue).toBeInstanceOf(WorkerQueue);
   });
 
   test('allows only instance to be created', () => {
     function another() {
-      const another = new Queue();
+      const another = new WorkerQueue();
     }
     function again() {
-      const another2 = new Queue();
+      const another2 = new WorkerQueue();
     }
     expect(another).toThrowError();
     expect(again).toThrowError();
@@ -141,11 +141,11 @@ describe('Queue', () => {
 
       // Can't easily test without removing one-instance block
       // test('returns {by:["clientMutationId"]}  when queue instantiated with {order:{by:["clientMutationId"]}} option', () => {
-      //   const opts: IQueueOptions = {
+      //   const opts: IWorkerQueueOptions = {
       //     order: { by: ['clientMutationId'] },
       //     name: 'order1',
       //   };
-      //   const order1 = new Queue(opts);
+      //   const order1 = new WorkerQueue(opts);
       //   expect(order1.order).toMatchObject({
       //     by: ['clientMutationId'],
       //     direction: 'asc',
@@ -154,11 +154,11 @@ describe('Queue', () => {
 
       // Can't easily test without removing one-instance block
       // test('returns {by:["createdAt"],direction:"desc" } when queue instantiated with {order:{direction:["desc"]}} option', () => {
-      //   const opts: IQueueOptions = {
+      //   const opts: IWorkerQueueOptions = {
       //     order: { by: ['createdAt'], direction: 'desc' },
       //     name: 'order2',
       //   };
-      //   const order2 = new Queue(opts);
+      //   const order2 = new WorkerQueue(opts);
       //   expect(order2.order).toMatchObject({
       //     by: ['createdAt'],
       //     direction: 'desc',

@@ -1,4 +1,4 @@
-# Redux Worker Queue [![Build Status](https://travis-ci.org/heysailor/redux-worker-queue.svg?branch=master)](https://travis-ci.org/heysailor/redux-worker-queue)
+# Redux Worker WorkerQueue [![Build Status](https://travis-ci.org/heysailor/redux-worker-queue.svg?branch=master)](https://travis-ci.org/heysailor/redux-worker-queue)
 
 _Work in progress, only documented functions operating._
 
@@ -10,12 +10,12 @@ Redux powered as standalone module, alternatively use middleware to act on speci
 
 ### 1. Initialization
 
-Import the `Queue` constructor, and initialize the queue.
+Import the `WorkerQueue` constructor, and initialize the queue.
 
-    import { Queue } from 'redux-worker-queue';
+    import { WorkerQueue } from 'redux-worker-queue';
 
     // Initialise queue
-    const myQueue = new Queue();
+    const myQueue = new WorkerQueue();
 
 ### 2. Register your queue handlers
 
@@ -38,14 +38,14 @@ Call `addOrUpdateItem()` with a new `payload: {}`,
     };
 
     // Add Buster to the queue.
-    const queued = myQueue.addOrUpdateItem({
+    const bustersQueueItem = myQueue.addOrUpdateItem({
       type: 'PET',
       payload: myPet,
     });
 
 ### _...coming: 4. flush the queue_
 
-## Queue work phases and handler functions
+## WorkerQueue work phases and handler functions
 
 Each queue item is processed in three phases: pre worker, worker, and post worker. You provide a handler function for each phase when you register a queue item type.
 
@@ -74,7 +74,7 @@ A queue item is only processed by the next handler once the preceding handler ha
 Import the queue middleware to control the queue with redux actions, then apply it in your code:
 
     import { createStore, applyMiddleware } from 'redux'
-    import { Queue, workerQueueMiddleware } from 'redux-worker-queue';
+    import { WorkerQueue, workerQueueMiddleware } from 'redux-worker-queue';
 
     import myAwesomeReducer from './reducers';
     import {
@@ -83,8 +83,8 @@ Import the queue middleware to control the queue with redux actions, then apply 
       linkMyPetsAsync
     } from './handlers';
 
-    // Initialise the Worker Queue as usual
-    const workerQueue = new Queue();
+    // Initialise the Worker WorkerQueue as usual
+    const workerQueue = new WorkerQueue();
 
     // Register queue handlers as usual
     myQueue.registerQueueItemType(
@@ -115,27 +115,27 @@ Import the queue middleware to control the queue with redux actions, then apply 
 
     // Or, use the queue as without redux middleware,
     // but this time it will use your store.
-    myQueue.addOrUpdateItem({
+    const bustersQueueItem = myQueue.addOrUpdateItem({
       type: 'PET',
       payload: myPet,
     }); // Done as well.
 
 ## API
 
-### `Queue:queue` constructor
+### `WorkerQueue:queue` constructor
 
-Returns the queue coordinator instance. Allows only one instance to be made.
+Called first to initialize the queue. Returns the queue coordinator instance. Allows only one instance to be made.
 
 Takes an optional settings object:
 
-    myQueue = new Queue({
+    myQueue = new WorkerQueue({
       order?: {
         by?: 'createdAt|clientMutationId,
         direction?: 'asc'|'desc',
       }
     });
 
-#### `Queue.registerQueueItemType:void`
+#### `WorkerQueue.registerQueueItemType:void`
 
 Must be called at least once to register a type of `QueueItem` to be placed on the queue, and handlers for that type.
 
@@ -146,19 +146,7 @@ Must be called at least once to register a type of `QueueItem` to be placed on t
       postWorker: async Function
     )
 
-#### `Queue.getHandlersForType:object`
-
-Returns the handlers for the specified `QueueItem` type.
-
-    myQueue.getHandlersForType(
-      type: String,
-    )
-
-#### `Queue.order:object`
-
-The ordering settings of the queue.
-
-#### `Queue.addOrUpdateQueueItem:void`
+#### `WorkerQueue.addOrUpdateQueueItem:QueueItem`
 
 Called to add a new item to the queue, or update an existing one. See QueueItem and NewQueueItem.
 
@@ -166,7 +154,19 @@ Called to add a new item to the queue, or update an existing one. See QueueItem 
       item: QueueItem | NewQueueItem
     )
 
-#### `Queue.removeItem:void`
+#### `WorkerQueue.getHandlersForType:object`
+
+Returns the handlers for the specified `QueueItem` type.
+
+    myQueue.getHandlersForType(
+      type: String,
+    )
+
+#### `WorkerQueue.order:object`
+
+The ordering settings of the queue.
+
+#### `WorkerQueue.removeItem:void`
 
 Called to remove QueueItem from the queue, as identified by its clientMutationId property.
 
@@ -174,7 +174,7 @@ Called to remove QueueItem from the queue, as identified by its clientMutationId
       clientMutationId: String
     )
 
-#### `Queue.clearQueue:void`
+#### `WorkerQueue.clearQueue:void`
 
 _Danger!_ Wipes the queue.
 

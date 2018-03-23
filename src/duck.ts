@@ -1,5 +1,5 @@
 import { combineReducers, Reducer } from 'redux';
-import { ItemQueue, INSTANCE } from './queue';
+import { ItemQueue } from './queue';
 import queueReducer, {
   IAddOrUpdateItemAction,
   IRemoveItemAction,
