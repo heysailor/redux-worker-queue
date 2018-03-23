@@ -1,12 +1,11 @@
-import queueReducer, {
+import queue, {
   addOrUpdateItem,
   removeItem,
-  __clearQueue__,
   QueueActionTypeKeys,
   ItemQueue,
 } from './duck';
 import WorkerQueue from '../WorkerQueue';
-import { IOtherAction } from '../duck';
+import { IOtherAction, __clearQueue__ } from '../duck';
 import { QueueItem, INewQueueItem, IQueueItem } from '../item';
 import 'jest';
 
@@ -66,17 +65,6 @@ describe('QUEUE duck', () => {
           });
         });
       });
-      describe('__clearQueue__()', () => {
-        test('it exists', () => {
-          expect(__clearQueue__).toBeDefined();
-        });
-        test('it makes an action with CLEAR actionType', () => {
-          const action = __clearQueue__();
-          expect(action).toMatchObject({
-            type: QueueActionTypeKeys.__CLEAR__,
-          });
-        });
-      });
     });
   });
   describe('Reducer', () => {
@@ -87,42 +75,42 @@ describe('QUEUE duck', () => {
     };
     const randomAction: IOtherAction = { type: QueueActionTypeKeys.OTHER };
     test('it exists', () => {
-      expect(queueReducer).toBeDefined();
-      expect(queueReducer).toBeInstanceOf(Function);
+      expect(queue).toBeDefined();
+      expect(queue).toBeInstanceOf(Function);
     });
     test('it initializes state when called without state', () => {
-      const result = queueReducer(state, randomAction);
+      const result = queue(state, randomAction);
       expect(result).toMatchObject(state);
     });
     test('it returns an identical state object when provided state and an unknown action type', () => {
-      const result = queueReducer(state, randomAction);
+      const result = queue(state, randomAction);
       expect(result).toMatchObject(state);
     });
     describe('when called with action made with...', () => {
       test(' addOrUpdateItem() --> it adds a queue item', () => {
         const addFirst = addOrUpdateItem(queueItem);
-        const firstState = queueReducer(state, addFirst);
+        const firstState = queue(state, addFirst);
         const addSecond = addOrUpdateItem(queueItem);
-        const secondState = queueReducer(firstState, addSecond);
+        const secondState = queue(firstState, addSecond);
         expect(secondState.length).toEqual(2);
         expect(secondState[0]).toMatchObject(queueItem);
       });
       test('removeItem() --> removes a queue item', () => {
         const addAction = addOrUpdateItem(queueItem);
-        const addedState = queueReducer(state, addAction);
+        const addedState = queue(state, addAction);
         expect(addedState.length).toEqual(1);
         const removeAction = removeItem(addedState[0].clientMutationId);
-        const removedState = queueReducer(addedState, removeAction);
+        const removedState = queue(addedState, removeAction);
         expect(removedState.length).toEqual(0);
       });
       test('__clearQueue__() --> purges the queue', () => {
         const addFirst = addOrUpdateItem(queueItem);
         const addSecond = addOrUpdateItem(queueItem);
-        let testState = queueReducer(state, addFirst);
-        testState = queueReducer(testState, addSecond);
+        let testState = queue(state, addFirst);
+        testState = queue(testState, addSecond);
         expect(testState.length).toEqual(2);
         const __clearQueue__Action = __clearQueue__();
-        testState = queueReducer(testState, __clearQueue__Action);
+        testState = queue(testState, __clearQueue__Action);
         expect(testState.length).toEqual(0);
       });
     });
