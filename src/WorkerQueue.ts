@@ -1,9 +1,9 @@
 import { isString, isFunction, orderBy } from 'lodash';
-import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from '../item';
-import { addOrUpdateItem, removeItem, __clearQueue__ } from './duck';
-import { store } from '../main';
+import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from './item';
+import { addOrUpdateItem, removeItem, __clearQueue__ } from './queue/duck';
+import { store } from './main';
 
-export let INSTANCE: Queue;
+export let INSTANCE: WorkerQueue;
 
 // TODO - import from other file
 type Handler = (item: IQueueItem) => Promise<{}>;
@@ -21,25 +21,25 @@ interface IRegisteredHandlers {
 type QueueOrderByOptions = ('createdAt' | 'clientMutationId')[];
 type QueueOrderDirectionOptions = 'asc' | 'desc';
 
-interface IQueueOrderSettings {
+interface IWorkerQueueOrderSettings {
   by: QueueOrderByOptions;
   direction: QueueOrderDirectionOptions;
 }
 
 // Test parameter allows for instantiation
-export interface IQueueOptions {
+export interface IWorkerQueueOptions {
   order?: {
     by?: QueueOrderByOptions;
     direction?: QueueOrderDirectionOptions;
   };
 }
 
-interface IQueueSettings {
-  order: IQueueOrderSettings;
+interface IWorkerQueueSettings {
+  order: IWorkerQueueOrderSettings;
 }
 
-class Queue {
-  constructor(opts?: IQueueOptions) {
+class WorkerQueue {
+  constructor(opts?: IWorkerQueueOptions) {
     if (INSTANCE) {
       throw new Error(`A queue exists already`);
     }
@@ -57,7 +57,7 @@ class Queue {
     INSTANCE = this;
   }
 
-  readonly settings: IQueueSettings;
+  readonly settings: IWorkerQueueSettings;
   readonly _handlers: IRegisteredHandlers = {};
   readonly actions = {
     addOrUpdateItem,
@@ -104,7 +104,7 @@ class Queue {
   public getHandlersForType(type: ItemType): IHandlers {
     return this._handlers[type];
   }
-  public get order(): IQueueOrderSettings {
+  public get order(): IWorkerQueueOrderSettings {
     return this.settings.order;
   }
   public addOrUpdateQueueItem(item: IQueueItem | INewQueueItem) {
@@ -118,4 +118,4 @@ class Queue {
   }
 }
 
-export default Queue;
+export default WorkerQueue;

@@ -7,7 +7,7 @@ import {
   ClientMutationId,
   QueueItem,
 } from '../item';
-import { INSTANCE } from './Queue';
+import { INSTANCE } from '../WorkerQueue';
 import { ActionTypes, IRootState } from '../duck';
 
 export type ItemQueue = IQueueItem[];

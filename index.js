@@ -1,1 +1,1 @@
-export { Queue, workerQueueMiddleware } from './lib/main';
+export { WorkerQueue, workerQueueMiddleware } from './lib/main';
