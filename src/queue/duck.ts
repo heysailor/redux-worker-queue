@@ -48,5 +48,5 @@ export default function queue(
 
 // Selectors
 export function queueSelector(state: Store.All): Queue.Store {
-  return state.queue;
+  return state.workerQueue.queue;
 }

@@ -56,7 +56,5 @@ export type WorkerQueueSettings = {
   };
   workers: number;
 };
-export type WorkerQueueOrderBy =
-  | ('createdAt' | 'clientMutationId')[]
-  | Function;
+export type WorkerQueueOrderBy = ('createdAt' | 'clientMutationId')[];
 export type WorkerQueueOrderDirection = 'asc' | 'desc';

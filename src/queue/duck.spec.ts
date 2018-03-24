@@ -1,5 +1,6 @@
 import queue, { addOrUpdateItem, removeItem, QueueActionTypes } from './duck';
 import { Queue } from './types';
+import { HandlerPromiseResponse } from '../types';
 import WorkerQueue from '../WorkerQueue';
 import { __clearQueue__ } from '../duck';
 import { QueueItem } from './item';
@@ -9,10 +10,8 @@ import 'jest';
 // https://stackoverflow.com/a/47311830/2779264
 jest.mock('../main'); // ie the redux store
 
-const handler = (type: Queue.Item) =>
-  new Promise((resolve, reject) => {
-    resolve({ ok: true });
-  });
+const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
+  new Promise((resolve, reject) => resolve({ ok: true, item }));
 
 const handlerType = {
   type: 'PETS',
@@ -75,7 +74,7 @@ describe('QUEUE duck', () => {
       expect(queue).toBeInstanceOf(Function);
     });
     test('it initializes state when called without state', () => {
-      const result = queue(state, randomAction);
+      const result = queue(undefined, randomAction);
       expect(result).toMatchObject(state);
     });
     test('it returns an identical state object when provided state and an unknown action type', () => {
