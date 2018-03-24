@@ -83,16 +83,15 @@ Import the queue middleware to control the queue with redux actions, then apply 
       linkMyPetsAsync
     } from './handlers';
 
-    // Initialise the Worker WorkerQueue as usual
+    // Initialise the Worker WorkerQueue as usual, but before using middleware
     const workerQueue = new WorkerQueue();
 
     // Register queue handlers as usual
-    myQueue.registerQueueItemType(
-      'PET',
-      isMyPetValidAsync,
-      saveMyPetAsync,
-      linkMyPetsAsync
-    )
+    myQueue.registerQueueItemType({
+      type: 'PET',
+      handlers: [isMyPetValidAsync,
+      saveMyPetAsync]
+    })
 
     // Create your store with workerQueueMiddleware applied
     let store = createStore(
