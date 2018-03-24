@@ -1,5 +1,6 @@
-import { QueueItem, INewQueueItem, IQueueItem } from './Item';
 import { isString } from 'lodash';
+import { QueueItem } from './item';
+import { Queue } from './types';
 import 'jest';
 
 describe('QueueItem', () => {

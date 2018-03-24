@@ -1,73 +1,45 @@
-import { combineReducers, Store, Reducer, AnyAction } from 'redux';
-import { orderBy, uniqBy, reject } from 'lodash';
-import { createSelector } from 'reselect';
-import {
-  INewQueueItem,
-  IQueueItem,
-  ClientMutationId,
-  QueueItem,
-} from '../item';
-import { INSTANCE } from '../WorkerQueue';
-import { IRootState, GlobalActionTypeKeys } from '../duck';
+import { QueueItem } from './item';
+import { Queue } from './types';
+import { Action, Store } from '../types';
 import { orderedItems, uniqueItems, rejectedItems } from '../util';
+import { ActionTypes } from '../duck';
 
-export type ItemQueue = IQueueItem[];
-
-const initialState: ItemQueue = [];
-
-// See this for a explanation of this approach, including use of 'OTHER'
-// https://spin.atomicobject.com/2017/07/24/redux-action-pattern-typescript/
-export enum QueueActionTypeKeys {
+export enum QueueActionTypes {
   ADD_OR_UPDATE_ITEM = '__QUEUE__ADD_OR_UPDATE_ITEM',
   REMOVE_ITEM = '__QUEUE__REMOVE_ITEM',
-  OTHER = '__any_other_action__',
 }
 
-// Add or update queue item
-
-export interface IAddOrUpdateItemAction {
-  type: QueueActionTypeKeys.ADD_OR_UPDATE_ITEM;
-  item: IQueueItem;
-}
-
-export function addOrUpdateItem(
-  queueItem: INewQueueItem | IQueueItem
-): IAddOrUpdateItemAction {
-  return {
-    type: QueueActionTypeKeys.ADD_OR_UPDATE_ITEM,
-    item: new QueueItem(queueItem),
-  };
-}
+// Add or update queue itemw
+export const addOrUpdateItem = (
+  queueItem: Queue.Item | Queue.NewItemInput
+): Queue.AddOrUpdateItemAction => ({
+  type: QueueActionTypes.ADD_OR_UPDATE_ITEM,
+  item: new QueueItem(queueItem),
+});
 
 // Remove queue item
-
-export interface IRemoveItemAction {
-  type: QueueActionTypeKeys.REMOVE_ITEM;
-  clientMutationId: ClientMutationId;
-}
-export function removeItem(
+export const removeItem = (
   clientMutationId: ClientMutationId
-): IRemoveItemAction {
-  return { type: QueueActionTypeKeys.REMOVE_ITEM, clientMutationId };
-}
+): Queue.RemoveItemAction => ({
+  type: QueueActionTypes.REMOVE_ITEM,
+  clientMutationId,
+});
 
-// Reducers
-
+// Reducer
 export default function queue(
-  state: ItemQueue = initialState,
-  action: AnyAction
-): ItemQueue {
+  state: Queue.Store = [],
+  action: Action
+): Queue.Store {
   switch (action.type) {
-    case QueueActionTypeKeys.ADD_OR_UPDATE_ITEM: {
+    case QueueActionTypes.ADD_OR_UPDATE_ITEM: {
       return orderedItems(uniqueItems([action.item, ...state]));
     }
-    case QueueActionTypeKeys.REMOVE_ITEM: {
+    case QueueActionTypes.REMOVE_ITEM: {
       return rejectedItems(state, action.clientMutationId);
     }
-    case GlobalActionTypeKeys.__CLEAR__: {
+    case ActionTypes.__CLEAR__: {
       return [];
     }
-
     default: {
       return state;
     }
@@ -75,3 +47,6 @@ export default function queue(
 }
 
 // Selectors
+export function queueSelector(state: Store.All): Queue.Store {
+  return state.queue;
+}

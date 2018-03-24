@@ -1,13 +1,12 @@
-import WorkerQueue, { IWorkerQueueOptions } from './WorkerQueue';
-import { IQueueItem, INewQueueItem } from './item';
-import { addOrUpdateItem } from './queue/duck';
+import WorkerQueue from './WorkerQueue';
+import { Queue } from './queue';
+import queue, { addOrUpdateItem } from './queue/duck';
+import { HandlerPromiseResponse } from './types';
 import 'jest';
 
 const initialWorkerCount = 2;
-const handler = (type: IQueueItem) =>
-  new Promise((resolve, reject) => {
-    resolve(true);
-  });
+const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
+  new Promise((resolve, reject) => resolve({ ok: true, item }));
 
 describe('WorkerQueue', () => {
   const newQueue = new WorkerQueue(
@@ -59,10 +58,11 @@ describe('WorkerQueue', () => {
 
       test('returns a handlers array when called with a corresponding itemType string', () => {
         const type = 'HUMANS';
-        const humanHandler = (type: IQueueItem) =>
-          new Promise((resolve, reject) => {
-            resolve(true);
-          });
+        const humanHandler = (
+          item: Queue.Item
+        ): Promise<HandlerPromiseResponse> =>
+          new Promise((resolve, reject) => resolve({ ok: true, item }));
+
         newQueue.registerQueueItemType({
           type,
           handlers: [handler, humanHandler],
@@ -94,7 +94,7 @@ describe('WorkerQueue', () => {
         expect(newQueue.addOrUpdateQueueItem).toBeDefined();
 
         const spy = jest.spyOn(newQueue.actions, 'addOrUpdateItem');
-        const queueItem: INewQueueItem = {
+        const queueItem: Queue.NewItemInput = {
           type: 'SNOT',
           payload: {
             consistency: 'stringy',
