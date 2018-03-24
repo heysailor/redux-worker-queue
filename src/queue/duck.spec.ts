@@ -1,22 +1,17 @@
-import queue, {
-  addOrUpdateItem,
-  removeItem,
-  QueueActionTypeKeys,
-  ItemQueue,
-} from './duck';
+import queue, { addOrUpdateItem, removeItem, QueueActionTypes } from './duck';
+import { Queue } from './types';
+import { HandlerPromiseResponse } from '../types';
 import WorkerQueue from '../WorkerQueue';
-import { IOtherAction, __clearQueue__ } from '../duck';
-import { QueueItem, INewQueueItem, IQueueItem } from '../item';
+import { __clearQueue__ } from '../duck';
+import { QueueItem } from './item';
 import 'jest';
 
 // Prevents weird jest-only, only-some files error: No reducer provided for key "queue"
 // https://stackoverflow.com/a/47311830/2779264
 jest.mock('../main'); // ie the redux store
 
-const handler = (type: IQueueItem) =>
-  new Promise((resolve, reject) => {
-    resolve(true);
-  });
+const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
+  new Promise((resolve, reject) => resolve({ ok: true, item }));
 
 const handlerType = {
   type: 'PETS',
@@ -24,7 +19,7 @@ const handlerType = {
 };
 
 describe('QUEUE duck', () => {
-  const queueItem: INewQueueItem = {
+  const queueItem: Queue.NewItemInput = {
     type: 'SNOT',
     payload: {
       consistency: 'stringy',
@@ -48,7 +43,7 @@ describe('QUEUE duck', () => {
         const action = addOrUpdateItem(existingItem);
         expect(action).toBeDefined();
         expect(action).toMatchObject({
-          type: QueueActionTypeKeys.ADD_OR_UPDATE_ITEM,
+          type: QueueActionTypes.ADD_OR_UPDATE_ITEM,
           item: existingItem,
         });
       });
@@ -60,7 +55,7 @@ describe('QUEUE duck', () => {
         test('it takes a clientMutationId and makes an action with REMOVE_ITEM actionType and matching clientMutationId', () => {
           const action = removeItem(clientMutationId);
           expect(action).toMatchObject({
-            type: QueueActionTypeKeys.REMOVE_ITEM,
+            type: QueueActionTypes.REMOVE_ITEM,
             clientMutationId,
           });
         });
@@ -68,18 +63,18 @@ describe('QUEUE duck', () => {
     });
   });
   describe('Reducer', () => {
-    const state: ItemQueue = [];
-    const queueItem: INewQueueItem = {
+    const state: Queue.Store = [];
+    const queueItem: Queue.NewItemInput = {
       type: 'SNOT',
       payload: {},
     };
-    const randomAction: IOtherAction = { type: QueueActionTypeKeys.OTHER };
+    const randomAction = { type: 'Rubbish' };
     test('it exists', () => {
       expect(queue).toBeDefined();
       expect(queue).toBeInstanceOf(Function);
     });
     test('it initializes state when called without state', () => {
-      const result = queue(state, randomAction);
+      const result = queue(undefined, randomAction);
       expect(result).toMatchObject(state);
     });
     test('it returns an identical state object when provided state and an unknown action type', () => {

@@ -1,59 +1,45 @@
-import { Flag, INewFlag } from './Flag';
-import { ActionTypes, GlobalActionTypeKeys } from '../duck';
-import { IQueueItem, ClientMutationId } from '../item';
+import { FlagItem } from './flag';
+import { Flag } from './types';
+import { Queue } from '../queue';
+import { Action } from '../types';
+import { ActionTypes } from '../duck';
 import { uniqueItems, rejectedItems } from '../util';
-import { QueueActionTypeKeys } from '../queue';
 
-type FlagQueue = Flag[];
-
-const initialState: FlagQueue = [];
-
-// See this for a explanation of this approach, including use of 'OTHER'
-// https://spin.atomicobject.com/2017/07/24/redux-action-pattern-typescript/
-export enum FlagActionTypeKeys {
-  ADD_OR_UPDATE_FLAG = '__QUEUE__ADD_OR_UPDATE_FLAG',
-  REMOVE_FLAG = '__QUEUE__REMOVE_FLAG',
-  OTHER = '__any_other_action__',
-}
-
-// Add or update queue item
-
-export interface IAddOrUpdateFlag {
-  type: FlagActionTypeKeys.ADD_OR_UPDATE_FLAG;
-  flag: Flag;
-}
-
-export interface IRemoveFlag {
-  type: FlagActionTypeKeys.REMOVE_FLAG;
-  clientMutationId: ClientMutationId;
+export enum FlagActionTypes {
+  ADD_OR_UPDATE_FLAG = '__WORKER_QUEUE__ADD_OR_UPDATE_FLAG',
+  REMOVE_FLAG = '__WORKER_QUEUE__REMOVE_FLAG',
 }
 
 // Actions
 
-export function addOrUpdateFlag(queueItem: IQueueItem, flag: INewFlag) {
+export function addOrUpdateFlag(
+  queueItem: Queue.Item,
+  flag: Flag.Item | Flag.NewItemInput
+): Flag.AddOrUpdateFlagAction {
+  if (!queueItem || !queueItem.clientMutationId || !queueItem.payload) {
+    throw new Error('Must provide a queueItem as first argument');
+  }
   if (!flag || !flag.status) {
     throw new Error(
       'Must provide a flag with status property as second argument'
     );
   }
 
-  if (!queueItem || !queueItem.clientMutationId || !queueItem.payload) {
-    throw new Error('Must provide a queueItem as first argument');
-  }
-
   return {
-    type: FlagActionTypeKeys.ADD_OR_UPDATE_FLAG,
-    flag: new Flag(queueItem, flag),
+    type: FlagActionTypes.ADD_OR_UPDATE_FLAG,
+    flag: new FlagItem(queueItem, flag),
   };
 }
 
-export function removeFlag(clientMutationId: ClientMutationId) {
+export function removeFlag(
+  clientMutationId: ClientMutationId
+): Flag.RemoveFlagAction {
   if (!clientMutationId) {
-    throw new Error('Must provide a the relevant QueueItem clientMutationId');
+    throw new Error('Must provide the relevant QueueItem.clientMutationId');
   }
 
   return {
-    type: FlagActionTypeKeys.REMOVE_FLAG,
+    type: FlagActionTypes.REMOVE_FLAG,
     clientMutationId,
   };
 }
@@ -61,19 +47,19 @@ export function removeFlag(clientMutationId: ClientMutationId) {
 // Reducer
 
 export default function flag(
-  state: FlagQueue = initialState,
-  action: ActionTypes
-): FlagQueue {
+  state: Flag.Store = [],
+  action: Action
+): Flag.Store {
   switch (action.type) {
-    case FlagActionTypeKeys.ADD_OR_UPDATE_FLAG: {
+    case FlagActionTypes.ADD_OR_UPDATE_FLAG: {
       return uniqueItems([action.flag, ...state]);
     }
-    case FlagActionTypeKeys.REMOVE_FLAG: {
+    case FlagActionTypes.REMOVE_FLAG: {
       return rejectedItems(state, action.clientMutationId);
     }
-    case GlobalActionTypeKeys.__CLEAR__: {
-      return initialState;
+    case ActionTypes.__CLEAR__: {
+      return [];
     }
   }
-  return initialState;
+  return [];
 }

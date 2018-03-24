@@ -1,53 +1,49 @@
 import { combineReducers, Reducer } from 'redux';
-import { ItemQueue } from './queue';
-import queue, { IAddOrUpdateItemAction, IRemoveItemAction } from './queue/duck';
-import flag, { IAddOrUpdateFlag, IRemoveFlag } from './flag/duck';
+import { fork, all } from 'redux-saga/effects';
+import { map } from 'lodash';
 
-// Not mistake - covers unknown actions from other unknown code.
-export interface IOtherAction {
-  type: '__any_other_action__';
-}
+import { Store, __clearQueue__Action, CleanAction, FlushAction } from './types';
+import { sagas as coordinatorSagas } from './coordinator/sagas';
+import queue from './queue/duck';
+import flag from './flag/duck';
 
-export enum GlobalActionTypeKeys {
+export enum ActionTypes {
   __CLEAR__ = '__WORKER_QUEUE__CLEAR__',
-  FLUSH = '__QUEUE__FLUSH',
-  OTHER = '__any_other_action_key__',
+  FLUSH = '__WORKER_QUEUE__FLUSH',
+  CLEAN = '__WORKER_QUEUE__CLEAN',
 }
-
-export type ActionTypes =
-  | IAddOrUpdateItemAction
-  | IRemoveItemAction
-  | I__clearQueue__Action
-  | IAddOrUpdateFlag
-  | IRemoveFlag
-  | IOtherAction;
 
 // Allows anything else to come in.
 interface StoreEnhancerState {}
 
 // Actions
 // Wipe queue  ## DANGER ZONE ##
-
-export interface I__clearQueue__Action {
-  type: GlobalActionTypeKeys.__CLEAR__;
-}
-export function __clearQueue__(): I__clearQueue__Action {
-  return { type: GlobalActionTypeKeys.__CLEAR__ };
-}
-
-export interface IFlushAction {
-  type: GlobalActionTypeKeys.FLUSH;
-}
-export function flush(): IFlushAction {
-  return { type: GlobalActionTypeKeys.FLUSH };
-}
-
-export interface IRootState extends StoreEnhancerState {
-  queue: Reducer<ItemQueue>;
-}
-
-const workerQueue: Reducer<IRootState> = combineReducers({
-  queue,
+export const __clearQueue__ = (): __clearQueue__Action => ({
+  type: ActionTypes.__CLEAR__,
 });
 
-export default workerQueue;
+export const clean = (): CleanAction => ({
+  type: ActionTypes.CLEAN,
+});
+
+export const flush = (): FlushAction => ({
+  type: ActionTypes.FLUSH,
+});
+
+const allReducers = combineReducers({
+  queue,
+  flag,
+});
+
+const rootReducer: Reducer<Store.All> = combineReducers({
+  workerQueue: allReducers,
+});
+
+export default rootReducer;
+
+// Sagas
+const combinedSagas = { ...coordinatorSagas };
+
+export function* rootSagas() {
+  yield all(map(combinedSagas, fork));
+}

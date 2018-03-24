@@ -1,3 +1,2 @@
-import { ItemQueue, QueueActionTypeKeys } from './duck';
-
-export { ItemQueue, QueueActionTypeKeys };
+export { Queue } from './types';
+export { QueueItem } from './item';

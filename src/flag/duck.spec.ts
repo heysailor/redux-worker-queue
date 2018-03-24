@@ -1,6 +1,6 @@
 import 'jest';
-import { QueueItem } from '../item';
-import flag, { addOrUpdateFlag, removeFlag, FlagActionTypeKeys } from './duck';
+import { QueueItem } from '../queue';
+import flag, { addOrUpdateFlag, removeFlag, FlagActionTypes } from './duck';
 import { __clearQueue__ } from '../duck';
 
 const queueItem = new QueueItem({
@@ -17,7 +17,7 @@ const workingFlagBase = {
 };
 
 const workingFlagActionBase = {
-  type: FlagActionTypeKeys.ADD_OR_UPDATE_FLAG,
+  type: FlagActionTypes.ADD_OR_UPDATE_FLAG,
   flag: workingFlagBase,
 };
 
@@ -123,7 +123,7 @@ describe('FLAG duck', () => {
       test('it makes a REMOVE_FLAG action with clientMutationId if called with clientMutationId argument', () => {
         const clientMutationId = 'erg3e';
         expect(removeFlag(clientMutationId)).toMatchObject({
-          type: FlagActionTypeKeys.REMOVE_FLAG,
+          type: FlagActionTypes.REMOVE_FLAG,
           clientMutationId,
         });
       });
