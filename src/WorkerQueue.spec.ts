@@ -19,7 +19,22 @@ describe('WorkerQueue', () => {
     }
   );
 
+  test('should need init() to be called when not using external redux', () => {
+    function shouldThrow() {
+      const queueItem: Queue.NewItemInput = {
+        type: 'SNOT',
+        payload: {
+          consistency: 'stringy',
+        },
+      };
+
+      newQueue.addOrUpdateQueueItem(queueItem);
+    }
+    expect(shouldThrow).toThrowError();
+  });
+
   test('loads', () => {
+    newQueue.init();
     expect(WorkerQueue).toBeTruthy();
   });
   test('is a class which instantiates', () => {

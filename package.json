@@ -24,7 +24,7 @@
     "lodash": "^4.17.5",
     "md5": "^2.2.1",
     "redux": "^3.7.2",
-    "redux-saga": "^0.16.0",
+    "redux-thunk": "^2.2.0",
     "reselect": "^3.0.1",
     "shortid": "^2.2.8"
   },

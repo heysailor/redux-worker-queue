@@ -4,6 +4,7 @@ import { Queue } from '../queue';
 import { Action } from '../types';
 import { ActionTypes } from '../duck';
 import { uniqueItems, rejectedItems } from '../util';
+import { INSTANCE } from '../WorkerQueue';
 
 export enum FlagActionTypes {
   ADD_OR_UPDATE_FLAG = '__WORKER_QUEUE__ADD_OR_UPDATE_FLAG',

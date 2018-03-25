@@ -11,29 +11,35 @@ import {
   WorkerQueueSettings,
   HandlersForQueueItemType,
   Handler,
+  Store,
+  RootSelector,
 } from './types';
-import { __clearQueue__, flush } from './duck';
+import allReducers, {
+  __clearQueue__,
+  flush,
+  defaultRootSelector,
+} from './duck';
 import { Queue } from './queue';
 import { addOrUpdateItem, removeItem } from './queue/duck';
-import { store } from './main';
-
-// import { isString, isFunction, orderBy, isArray, isObject } from 'lodash';
-// import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from './item';
-// import { addOrUpdateItem, removeItem } from './queue/duck';
-// import { __clearQueue__, flush } from './duck';
+import { store, initStore } from './store';
+import { middleware } from './middleware';
 
 export let INSTANCE: WorkerQueue;
 const MAX_WORKERS = 50;
 
-// type QueueOrderByOptions = ('createdAt' | 'clientMutationId')[];
-// type QueueOrderDirectionOptions = 'asc' | 'desc';
-
-// interface IWorkerQueueOrderSettings {
-//   by: QueueOrderByOptions;
-//   direction: QueueOrderDirectionOptions;
-// }
-
 class WorkerQueue {
+  readonly settings: WorkerQueueSettings;
+  readonly _handlers: HandlersForQueueItemType = {};
+  readonly rootSelector: RootSelector = defaultRootSelector;
+  readonly initStore: Function = initStore;
+  private EXTERNAL_STORE: boolean = false;
+  readonly actions = {
+    addOrUpdateItem,
+    removeItem,
+    __clearQueue__,
+    flush,
+  };
+
   constructor(
     types: RegisterQueueItemTypeInput | RegisterQueueItemTypeInput[],
     opts?: Partial<WorkerQueueSettings>
@@ -53,6 +59,9 @@ class WorkerQueue {
         throw new Error(
           `Worker count must be an integer between 1 and ${MAX_WORKERS}`
         );
+      }
+      if (opts.reduxRootSelector) {
+        this.rootSelector = opts.reduxRootSelector;
       }
     }
 
@@ -76,15 +85,6 @@ class WorkerQueue {
 
     INSTANCE = this;
   }
-
-  readonly settings: WorkerQueueSettings;
-  readonly _handlers: HandlersForQueueItemType = {};
-  readonly actions = {
-    addOrUpdateItem,
-    removeItem,
-    __clearQueue__,
-    flush,
-  };
 
   public registerQueueItemType(
     itemType: RegisterQueueItemTypeInput
@@ -137,6 +137,19 @@ class WorkerQueue {
   }
   public clearQueue() {
     store.dispatch(this.actions.__clearQueue__());
+  }
+  get middleware() {
+    return middleware;
+  }
+  get reducers() {
+    this.EXTERNAL_STORE = true;
+    return allReducers;
+  }
+  public init() {
+    if (this.EXTERNAL_STORE) {
+      throw new Error(`Don't call init when integrating with external redux.`);
+    }
+    initStore();
   }
 }
 
