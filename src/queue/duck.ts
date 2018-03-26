@@ -3,7 +3,8 @@ import { Queue } from './types';
 import { Action, Store } from '../types';
 import { orderedItems, uniqueItems, rejectedItems } from '../util';
 import { ActionTypes } from '../duck';
-import WorkerQueue, { INSTANCE } from '../WorkerQueue';
+import WorkerQueue from '../WorkerQueue';
+import { rootSelector } from '../store';
 
 export enum QueueActionTypes {
   ADD_OR_UPDATE_ITEM = '__QUEUE__ADD_OR_UPDATE_ITEM',
@@ -50,9 +51,4 @@ export default function queue(
       return state;
     }
   }
-}
-
-// Selectors
-export function queueSelector(state: Store.All): Queue.Store {
-  return state.queue;
 }

@@ -1,5 +1,4 @@
 import { Reducer } from 'redux';
-import { Selector } from 'reselect';
 import { Queue } from './queue/types';
 import { Flag } from './flag/types';
 import { ActionTypes } from './duck';
@@ -13,7 +12,7 @@ declare global {
 export namespace Store {
   export type All = {
     queue: Queue.Store;
-    flag: Flag.Store;
+    flags: Flag.Store;
   };
 }
 
@@ -33,10 +32,6 @@ export type __clearQueue__Action = {
 
 export type CleanAction = {
   type: ActionTypes.CLEAN;
-};
-
-export type FlushAction = {
-  type: ActionTypes.FLUSH;
 };
 
 export type Handler = (

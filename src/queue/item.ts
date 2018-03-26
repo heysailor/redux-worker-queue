@@ -5,7 +5,7 @@ import { Queue } from './types';
 export class QueueItem implements Queue.Item {
   readonly type: string = '';
   readonly payload: object = {};
-  readonly meta: object = {};
+  readonly handlerIndex: number = 0;
   readonly errors: Queue.ItemErrors = [];
   readonly clientMutationId: ClientMutationId = shortid.generate();
   readonly createdAt: string = new Date().toJSON();

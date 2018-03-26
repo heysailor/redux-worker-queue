@@ -1,11 +1,13 @@
+import { filter } from 'lodash';
+
 import { FlagItem } from './flag';
 import { Flag } from './types';
 import { Queue } from '../queue';
-import { Action } from '../types';
+import { Action, Store } from '../types';
 import { ActionTypes } from '../duck';
 import { uniqueItems, rejectedItems } from '../util';
-import { INSTANCE } from '../WorkerQueue';
-
+import { rootSelector } from '../store';
+import { WorkerQueue } from '../main';
 export enum FlagActionTypes {
   ADD_OR_UPDATE_FLAG = '__WORKER_QUEUE__ADD_OR_UPDATE_FLAG',
   REMOVE_FLAG = '__WORKER_QUEUE__REMOVE_FLAG',

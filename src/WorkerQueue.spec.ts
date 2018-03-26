@@ -57,7 +57,7 @@ describe('WorkerQueue', () => {
 
   test('worker property can be set to a maximum', () => {
     function tooMany() {
-      newQueue.workers = 60;
+      newQueue.workers = 1000;
     }
     expect(tooMany).toThrowError();
     expect(newQueue.workers).toEqual(initialWorkerCount);
@@ -68,7 +68,7 @@ describe('WorkerQueue', () => {
   describe('methods', () => {
     describe('getHandlersForType()', () => {
       test('takes a itemType string as its argument', () => {
-        expect(newQueue.getHandlersForType('srhaf')).toBeUndefined();
+        expect(newQueue.getHandlersForType('srhaf').length).toBe(0);
       });
 
       test('returns a handlers array when called with a corresponding itemType string', () => {
@@ -142,9 +142,12 @@ describe('WorkerQueue', () => {
         spy.mockReset();
         spy.mockRestore();
       });
+      // Selectors
+      const queueSelector = (state: any, workerQueueInstance: WorkerQueue) =>
+        rootSelector(state, workerQueueInstance).queue;
       test('flush() calls the flush action creator', () => {
         expect(newQueue.flush).toBeDefined();
-        const spy = jest.spyOn(newQueue.actions, 'flush');
+        const spy = jest.spyOn(newQueue.actions, 'flushAsync');
 
         newQueue.flush();
         expect(spy).toHaveBeenCalled();

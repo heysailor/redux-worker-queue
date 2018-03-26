@@ -6,7 +6,7 @@ import {
 } from 'redux';
 import { middleware } from './middleware';
 import WorkerQueue, { INSTANCE } from './WorkerQueue';
-import rootReducer, { defaultRootSelector } from './duck';
+import rootReducer from './duck';
 import { Store } from './types';
 
 export let store: ReduxStore<object>;
@@ -16,13 +16,12 @@ export let store: ReduxStore<object>;
 export function initStore(externalStore?: any) {
   if (store) return;
 
-  // If reduxRootSelector is set and not using external store, it'll stuff things up.
-  if (!externalStore && INSTANCE.rootSelector !== defaultRootSelector) {
-    throw new Error(`
-      Do not use reduxRootSelector if not connecting to an external redux store. Doing so will likely cause queue to fail.
-    `);
-  }
-
   store =
     externalStore || createStore(rootReducer, applyMiddleware(middleware));
 }
+
+// wrapped in function, as INSTANCE not around before WokerQueue.init() called
+export const rootSelector = (
+  state: any,
+  workerQueueInstance: WorkerQueue
+): Store.All => workerQueueInstance.rootSelector(state);

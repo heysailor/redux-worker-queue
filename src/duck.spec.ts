@@ -1,5 +1,5 @@
 import 'jest';
-import { __clearQueue__, ActionTypes, flush, clean } from './duck';
+import { __clearQueue__, ActionTypes, clean } from './duck';
 
 // Prevents weird jest-only, only-some files error: No reducer provided for key "queue"
 // https://stackoverflow.com/a/47311830/2779264
@@ -14,18 +14,6 @@ describe('WorkerQueue (Globale) duck', () => {
       const action = __clearQueue__();
       expect(action).toMatchObject({
         type: ActionTypes.__CLEAR__,
-      });
-    });
-  });
-
-  describe('flush()', () => {
-    test('it exists', () => {
-      expect(flush).toBeDefined();
-    });
-    test('it makes an action with FLUSH actionType', () => {
-      const action = flush();
-      expect(action).toMatchObject({
-        type: ActionTypes.FLUSH,
       });
     });
   });
