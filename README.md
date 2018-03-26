@@ -1,4 +1,4 @@
-# Redux Worker WorkerQueue [![Build Status](https://travis-ci.org/heysailor/redux-worker-queue.svg?branch=master)](https://travis-ci.org/heysailor/redux-worker-queue)
+# Redux Worker WorkerQueue [![Build Status](https://travis-ci.org/heysailor/redux-worker-queue.svg?branch=master)](https://travis-ci.org/heysailor/redux-worker-queue) [![Coverage Status](https://coveralls.io/repos/github/heysailor/redux-worker-queue/badge.svg?branch=coordinator)](https://coveralls.io/github/heysailor/redux-worker-queue?branch=coordinator)
 
 _Work in progress, only documented functions operating._
 
