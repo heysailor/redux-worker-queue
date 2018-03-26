@@ -1,0 +1,1 @@
+./node_modules/coveralls/bin/coveralls.js < coverage/lcov.info
