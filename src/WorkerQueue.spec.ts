@@ -1,6 +1,6 @@
 import WorkerQueue from './WorkerQueue';
 import { Queue } from './queue';
-import queue, { addOrUpdateItem } from './queue/duck';
+import { addOrUpdateItem } from './queue/duck';
 import { HandlerPromiseResponse } from './types';
 import 'jest';
 
@@ -142,9 +142,7 @@ describe('WorkerQueue', () => {
         spy.mockReset();
         spy.mockRestore();
       });
-      // Selectors
-      const queueSelector = (state: any, workerQueueInstance: WorkerQueue) =>
-        rootSelector(state, workerQueueInstance).queue;
+
       test('flush() calls the flush action creator', () => {
         expect(newQueue.flush).toBeDefined();
         const spy = jest.spyOn(newQueue.actions, 'flushAsync');

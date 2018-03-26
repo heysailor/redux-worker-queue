@@ -33,7 +33,7 @@ export const removeItem = (
 };
 
 // Reducer
-export default function queue(
+export default function queueReducer(
   state: Queue.Store = [],
   action: Action
 ): Queue.Store {

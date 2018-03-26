@@ -1,17 +1,25 @@
-import { filter, find } from 'lodash';
+import { filter, find, differenceBy } from 'lodash';
+import { Dispatch } from 'redux';
 
 import { FlagItem } from './flag';
 import { Flag } from './types';
 import { Queue } from '../queue';
+import { queueSelector } from '../queue/duck';
 import { Action, Store } from '../types';
 import { ActionTypes } from '../duck';
-import { uniqueItems, rejectedItems } from '../util';
+import { uniqueItems, rejectedItems, nextTick } from '../util';
 import { rootSelector } from '../store';
-import { WorkerQueue } from '../main';
+import WorkerQueue, { INSTANCE } from '../WorkerQueue';
+
 export enum FlagActionTypes {
   ADD_OR_UPDATE_FLAG = '__WORKER_QUEUE__ADD_OR_UPDATE_FLAG',
   REMOVE_FLAG = '__WORKER_QUEUE__REMOVE_FLAG',
 }
+
+// Flags represent queueItem meta.
+// They need to be separate from the queueItem so that:
+// - external handlers cannot alter the data
+// - changing the meta does not change the queueItem, as that is how locking is determined.
 
 // Actions
 
@@ -47,9 +55,68 @@ export function removeFlag(
   };
 }
 
+// Activated from WorkerQueue or user generated action.
+export const clean = function() {
+  return async function cleanAsync(
+    dispatch: Dispatch<Store.All>,
+    getState: Function
+  ) {
+    let state = getState();
+
+    // Remove all flags which reference items no longer in the queue.
+    const irrelevant = differenceBy(
+      flagsSelector(state, INSTANCE),
+      queueSelector(state, INSTANCE),
+      item => item.clientMutationId
+    );
+
+    if (irrelevant.length) {
+      // Remove all
+      await Promise.all(
+        irrelevant.map(flag => {
+          dispatch(removeFlag(flag.clientMutationId));
+          return nextTick();
+        })
+      );
+
+      // Fetch changed state
+      state = getState();
+    }
+
+    // Check that the locked out flags should remain that way.
+    const lockedFlags = lockedFlagsSelector(state, INSTANCE);
+    const queue = queueSelector(state, INSTANCE);
+
+    if (lockedFlags.length) {
+      await Promise.all(
+        lockedFlags.map(flag => {
+          const queueItem = find(queue, {
+            clientMutationId: flag.clientMutationId,
+          });
+          // Shouldn't happen, but sanity check
+          if (!queueItem) return;
+          const testFlag = new FlagItem(queueItem, flag);
+
+          if (testFlag.hash !== flag.hash) {
+            // queueItem has changed, therefore out of purgatory
+            dispatch(addOrUpdateFlag(queueItem, { status: 'OK' }));
+            return nextTick();
+          } else {
+            // Still in the bad books, don't change status
+            return;
+          }
+        })
+      );
+    }
+
+    // Doneskis.
+    return true;
+  };
+};
+
 // Reducer
 
-export default function flag(
+export default function flagsReducer(
   state: Flag.Store = [],
   action: Action
 ): Flag.Store {
@@ -63,14 +130,17 @@ export default function flag(
     case ActionTypes.__CLEAR__: {
       return [];
     }
+    default: {
+      return state;
+    }
   }
-  return [];
 }
 
 // Selectors
 
-export const flagsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
-  rootSelector(state, workerQueueInstance).flags;
+export const flagsSelector = (state: any, workerQueueInstance: WorkerQueue) => {
+  return workerQueueInstance.rootSelector(state).flags;
+};
 
 export const flagByClientMutationIdSelector = (
   state: any,

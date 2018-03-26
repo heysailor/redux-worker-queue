@@ -19,7 +19,6 @@ export namespace Store {
 export type RootSelector = (state: any) => Store.All;
 
 export type Action =
-  | CleanAction
   | __clearQueue__Action
   | Queue.AddOrUpdateItemAction
   | Queue.RemoveItemAction
@@ -28,10 +27,6 @@ export type Action =
 
 export type __clearQueue__Action = {
   type: ActionTypes.__CLEAR__;
-};
-
-export type CleanAction = {
-  type: ActionTypes.CLEAN;
 };
 
 export type Handler = (item: Queue.Item) => Promise<HandlerPromiseResponse>;
