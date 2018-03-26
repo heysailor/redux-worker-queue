@@ -34,9 +34,7 @@ export type CleanAction = {
   type: ActionTypes.CLEAN;
 };
 
-export type Handler = (
-  item: Queue.Item
-) => Promise<HandlerPromiseResponse | Error>;
+export type Handler = (item: Queue.Item) => Promise<HandlerPromiseResponse>;
 export type HandlersForQueueItemType = {
   [key: string]: Handler[];
 };

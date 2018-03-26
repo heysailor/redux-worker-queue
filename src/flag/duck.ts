@@ -1,4 +1,4 @@
-import { filter } from 'lodash';
+import { filter, find } from 'lodash';
 
 import { FlagItem } from './flag';
 import { Flag } from './types';
@@ -66,3 +66,32 @@ export default function flag(
   }
   return [];
 }
+
+// Selectors
+
+export const flagsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
+  rootSelector(state, workerQueueInstance).flags;
+
+export const flagByClientMutationIdSelector = (
+  state: any,
+  workerQueueInstance: WorkerQueue,
+  clientMutationId: ClientMutationId
+) => find(flagsSelector(state, workerQueueInstance), { clientMutationId });
+
+export const lockedFlagsSelector = (
+  state: any,
+  workerQueueInstance: WorkerQueue
+) => filter(flagsSelector(state, workerQueueInstance), { status: 'LOCKED' });
+
+export const workingFlagsSelector = (
+  state: any,
+  workerQueueInstance: WorkerQueue
+) => filter(flagsSelector(state, workerQueueInstance), { status: 'WORKING' });
+
+export const haltedFlagsSelector = (
+  state: any,
+  workerQueueInstance: WorkerQueue
+) => filter(flagsSelector(state, workerQueueInstance), { status: 'HALTED' });
+
+export const okFlagsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
+  filter(flagsSelector(state, workerQueueInstance), { status: 'OK' });

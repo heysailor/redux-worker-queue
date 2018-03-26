@@ -52,3 +52,8 @@ export default function queue(
     }
   }
 }
+
+// Selectors
+
+export const queueSelector = (state: any, workerQueueInstance: WorkerQueue) =>
+  rootSelector(state, workerQueueInstance).queue;

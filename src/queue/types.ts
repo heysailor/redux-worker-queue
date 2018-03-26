@@ -9,7 +9,6 @@ export namespace Queue {
   export type Item = {
     readonly type: ItemType;
     readonly payload: object;
-    readonly handlerIndex: number;
     readonly errors: ItemErrors;
     readonly clientMutationId: ClientMutationId;
     readonly createdAt: string;

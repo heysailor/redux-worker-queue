@@ -1,16 +1,24 @@
 import { Dispatch } from 'redux';
-import { filter, differenceBy } from 'lodash';
+import { filter, differenceBy, uniqBy } from 'lodash';
 
 import { Flush } from './types';
-import { FlushWorker } from './worker';
 
 import { Store } from '../types';
 import { clean } from '../duck';
 import { Queue } from '../queue';
-import { Flag } from '../flag';
+import { queueSelector } from '../queue/duck';
+import { Flag, FlagItem } from '../flag';
+import {
+  addOrUpdateFlag,
+  flagByClientMutationIdSelector,
+  haltedFlagsSelector,
+  lockedFlagsSelector,
+  workingFlagsSelector,
+} from '../flag/duck';
 import { nextTick } from '../util';
 import WorkerQueue, { INSTANCE } from '../WorkerQueue';
 import { rootSelector } from '../store';
+import { FlushWorker } from './worker';
 
 let flushing: boolean = false;
 
@@ -22,8 +30,6 @@ export const flushAsync = function() {
       return;
     }
     flushing = false;
-
-    const activeWorkers: Flush.ActiveWorker[] = [];
 
     // Cleanup - remove expired Flags:WORKING|LOCKED...nextTick
     await dispatch(clean());
@@ -40,52 +46,90 @@ export const flushAsync = function() {
     async function flush() {
       // Next valid QueueItems
       const state = getState();
-      const validItems: Queue.Item[] = validItemsSelector(state, INSTANCE);
 
-      // if no further valid items --> return
-      if (!validItems || !validItems.length) return true;
+      // Spawn worker with waiting QueueItem to process up to the maxiumum allowed count.
+      // First, as the flags queue will likely be shorter than the item queue.
+      const workingFlags = workingFlagsSelector(state, INSTANCE);
+      if (workingFlags.length >= INSTANCE.workers) return true;
 
-      // Fill workers collection up to the maxiumum allowed count with given a waiting QueueItem to process.
-      if (activeWorkers.length >= INSTANCE.workers) return true;
-      const waitingValid = differenceBy(
-        validItems,
-        activeWorkers,
-        'clientMutationId'
+      // Those not flagged as HALTED|WORKING
+      const flushableItems: Queue.Item[] = flushableItemsSelector(
+        state,
+        INSTANCE
       );
-      if (!waitingValid.length) return true;
+      if (!flushableItems || !flushableItems.length) return true;
 
       // fire off next worker
-      await registeredWorker(waitingValid[0]);
+      await flaggedWorker(flushableItems[0]);
 
       // recurse to spawn workers until no more valid items to process or all worker spots filled.
       await flush();
 
-      async function registeredWorker(queueItem: Queue.Item) {
-        activeWorkers.push({ clientMutationId: queueItem.clientMutationId });
-        await new FlushWorker(queueItem).start();
-        activeWorkers.filter(
-          (active: Flush.ActiveWorker) =>
-            active.clientMutationId === queueItem.clientMutationId
+      async function flaggedWorker(queueItem: Queue.Item) {
+        // flag as working
+        dispatch(addOrUpdateFlag(queueItem, { status: 'WORKING' }));
+
+        // wait for flag to be present
+        await nextTick();
+
+        // get flag
+        const state = getState();
+        const flag = flagByClientMutationIdSelector(
+          state,
+          INSTANCE,
+          queueItem.clientMutationId
         );
+
+        // This really shouldn't happen.
+        if (!flag) {
+          throw new Error(
+            `Flag should be present for queue item ${
+              queueItem.clientMutationId
+            }`
+          );
+        }
+
+        const result = await new FlushWorker(queueItem, flag).process();
+
+        // Make intermediate test flag to obtain new item hash
+        const testFlag = new FlagItem(result.item, flag);
+        const itemChanged = testFlag.hash === flag.hash;
+        let newFlag;
+
+        if (!result.ok && itemChanged) {
+          // OK: false, item changed: The handler needs to halt the item so more work is done
+          newFlag = new FlagItem(result.item, { ...flag, status: 'HALTED' });
+        } else if (result.ok && !itemChanged) {
+          // OK: true, item not changed: There was an error
+          newFlag = new FlagItem(result.item, { ...flag, status: 'LOCKED' });
+        } else {
+          // Happy days. Item marked OK, increment to next handler.
+          newFlag = new FlagItem(result.item, {
+            ...flag,
+            status: 'OK',
+            handlerIndex: flag.handlerIndex + 1,
+          });
+        }
+        dispatch(addOrUpdateFlag(result.item, newFlag));
+        await nextTick();
+        return true;
       }
     }
   };
 };
 
-// Selectors
-const queueSelector = (state: any, workerQueueInstance: WorkerQueue) =>
-  rootSelector(state, workerQueueInstance).queue;
-
-const flagsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
-  rootSelector(state, workerQueueInstance).flags;
-
-const lockedFlagsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
-  filter(flagsSelector(state, workerQueueInstance), { status: 'LOCKED' });
-
-const validItemsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
-  // items which aren't locked are valid.
-  differenceBy(
-    queueSelector(state, workerQueueInstance),
-    lockedFlagsSelector(queueSelector, workerQueueInstance),
+function flushableItemsSelector(state: any, INSTANCE: WorkerQueue) {
+  const badFlags = uniqBy(
+    [
+      ...haltedFlagsSelector(state, INSTANCE),
+      ...lockedFlagsSelector(state, INSTANCE),
+      ...workingFlagsSelector(state, INSTANCE),
+    ],
     'clientMutationId'
   );
+  return differenceBy(
+    queueSelector(state, INSTANCE),
+    badFlags,
+    'clientMutationId'
+  );
+}
