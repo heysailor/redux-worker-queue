@@ -1,6 +1,8 @@
+import { Reducer } from 'redux';
 import { Queue } from './queue/types';
 import { Flag } from './flag/types';
 import { ActionTypes } from './duck';
+import { Store } from './types';
 
 declare global {
   export type ClientMutationId = string | number;
@@ -9,15 +11,14 @@ declare global {
 
 export namespace Store {
   export type All = {
-    workerQueue: {
-      queue: Queue.Store;
-      flag: Flag.Store;
-    };
+    queue: Queue.Store;
+    flags: Flag.Store;
   };
 }
 
+export type RootSelector = (state: any) => Store.All;
+
 export type Action =
-  | CleanAction
   | __clearQueue__Action
   | Queue.AddOrUpdateItemAction
   | Queue.RemoveItemAction
@@ -28,17 +29,7 @@ export type __clearQueue__Action = {
   type: ActionTypes.__CLEAR__;
 };
 
-export type CleanAction = {
-  type: ActionTypes.CLEAN;
-};
-
-export type FlushAction = {
-  type: ActionTypes.FLUSH;
-};
-
-export type Handler = (
-  item: Queue.Item
-) => Promise<HandlerPromiseResponse | Error>;
+export type Handler = (item: Queue.Item) => Promise<HandlerPromiseResponse>;
 export type HandlersForQueueItemType = {
   [key: string]: Handler[];
 };
@@ -55,6 +46,7 @@ export type WorkerQueueSettings = {
     direction: WorkerQueueOrderDirection;
   };
   workers: number;
+  reduxRootSelector?: (externalState: object) => Store.All;
 };
 export type WorkerQueueOrderBy = ('createdAt' | 'clientMutationId')[];
 export type WorkerQueueOrderDirection = 'asc' | 'desc';

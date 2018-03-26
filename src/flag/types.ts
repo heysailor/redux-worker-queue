@@ -6,6 +6,7 @@ export namespace Flag {
     readonly handlerIndex: number;
     readonly status: ItemStatus;
     readonly hash: string;
+    readonly lastHash: string | undefined;
     readonly timestamp: number;
   };
 
@@ -14,7 +15,7 @@ export namespace Flag {
     status: ItemStatus;
   };
 
-  export type ItemStatus = 'WORKING' | 'HALTED' | 'LOCKED';
+  export type ItemStatus = 'WORKING' | 'HALTED' | 'LOCKED' | 'OK';
 
   export type Store = Item[];
 

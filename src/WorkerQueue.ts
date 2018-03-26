@@ -11,29 +11,37 @@ import {
   WorkerQueueSettings,
   HandlersForQueueItemType,
   Handler,
+  Store,
+  RootSelector,
 } from './types';
-import { __clearQueue__, flush } from './duck';
+import allReducers, { __clearQueue__ } from './duck';
 import { Queue } from './queue';
 import { addOrUpdateItem, removeItem } from './queue/duck';
-import { store } from './main';
-
-// import { isString, isFunction, orderBy, isArray, isObject } from 'lodash';
-// import { IQueueItem, ItemType, ClientMutationId, INewQueueItem } from './item';
-// import { addOrUpdateItem, removeItem } from './queue/duck';
-// import { __clearQueue__, flush } from './duck';
+import { flushAsync } from './flush/duck';
+import { clean } from './flag/duck';
+import { store, initStore } from './store';
+import { middleware } from './middleware';
 
 export let INSTANCE: WorkerQueue;
-const MAX_WORKERS = 50;
-
-// type QueueOrderByOptions = ('createdAt' | 'clientMutationId')[];
-// type QueueOrderDirectionOptions = 'asc' | 'desc';
-
-// interface IWorkerQueueOrderSettings {
-//   by: QueueOrderByOptions;
-//   direction: QueueOrderDirectionOptions;
-// }
+const MAX_WORKERS = 999;
 
 class WorkerQueue {
+  readonly settings: WorkerQueueSettings;
+  readonly _handlers: HandlersForQueueItemType = {};
+  readonly initStore: Function = initStore;
+  public EXTERNAL_STORE: boolean = false;
+  public _defaultRootSelector = (state: any) => {
+    return this.EXTERNAL_STORE ? state.workerQueue : state;
+  };
+  public _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
+  readonly actions = {
+    addOrUpdateItem,
+    removeItem,
+    __clearQueue__,
+    flushAsync,
+    clean,
+  };
+
   constructor(
     types: RegisterQueueItemTypeInput | RegisterQueueItemTypeInput[],
     opts?: Partial<WorkerQueueSettings>
@@ -53,6 +61,9 @@ class WorkerQueue {
         throw new Error(
           `Worker count must be an integer between 1 and ${MAX_WORKERS}`
         );
+      }
+      if (opts.reduxRootSelector) {
+        this._rootSelector = opts.reduxRootSelector;
       }
     }
 
@@ -77,15 +88,6 @@ class WorkerQueue {
     INSTANCE = this;
   }
 
-  readonly settings: WorkerQueueSettings;
-  readonly _handlers: HandlersForQueueItemType = {};
-  readonly actions = {
-    addOrUpdateItem,
-    removeItem,
-    __clearQueue__,
-    flush,
-  };
-
   public registerQueueItemType(
     itemType: RegisterQueueItemTypeInput
   ): boolean | Error {
@@ -109,8 +111,8 @@ class WorkerQueue {
   private addHandlers(type: Queue.ItemType, handlers: Handler[]) {
     this._handlers[type] = handlers;
   }
-  public getHandlersForType(type: Queue.ItemType): Handler[] {
-    return this._handlers[type];
+  public getHandlersForType(type: Queue.ItemType) {
+    return this._handlers[type] || [];
   }
   public get order(): object {
     return this.settings.order;
@@ -133,10 +135,38 @@ class WorkerQueue {
     store.dispatch(this.actions.removeItem(clientMutationId));
   }
   public flush() {
-    store.dispatch(this.actions.flush());
+    store.dispatch(this.actions.flushAsync());
   }
   public clearQueue() {
     store.dispatch(this.actions.__clearQueue__());
+  }
+  get middleware() {
+    return middleware;
+  }
+  get reducers() {
+    return allReducers;
+  }
+  private onExternalStore() {
+    this.EXTERNAL_STORE = true;
+  }
+  public rootSelector(state: any): Store.All {
+    return this._rootSelector(state);
+  }
+  public init() {
+    if (this.EXTERNAL_STORE) {
+      throw new Error(`Don't call init when integrating with external redux.`);
+    }
+
+    // If reduxRootSelector is set and not using external store, it'll stuff things up.
+    if (
+      !this.EXTERNAL_STORE &&
+      this._rootSelector !== this._defaultRootSelector
+    ) {
+      throw new Error(`
+      Do not use reduxRootSelector if not connecting to an external redux store. Doing so will likely cause queue to fail.
+    `);
+    }
+    initStore();
   }
 }
 

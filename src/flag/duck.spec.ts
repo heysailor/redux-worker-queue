@@ -1,7 +1,25 @@
 import 'jest';
-import { QueueItem } from '../queue';
-import flag, { addOrUpdateFlag, removeFlag, FlagActionTypes } from './duck';
-import { __clearQueue__ } from '../duck';
+
+import { QueueItem, Queue } from '../queue';
+import { addOrUpdateItem, removeItem } from '../queue/duck';
+import flag, {
+  addOrUpdateFlag,
+  removeFlag,
+  FlagActionTypes,
+  flagsSelector,
+  flagByClientMutationIdSelector,
+  lockedFlagsSelector,
+  workingFlagsSelector,
+  haltedFlagsSelector,
+  okFlagsSelector,
+  clean,
+} from './duck';
+import { FlagItem } from './flag';
+import rootReducer, { __clearQueue__ } from '../duck';
+import { Store } from '../types';
+import { HandlerPromiseResponse } from '../types';
+import { WorkerQueue } from '../main';
+import { nextTick } from '../util';
 
 const queueItem = new QueueItem({
   type: 'ITEM',
@@ -21,9 +39,17 @@ const workingFlagActionBase = {
   flag: workingFlagBase,
 };
 
-// Prevents weird jest-only, only-some files error: No reducer provided for key "queue"
-// https://stackoverflow.com/a/47311830/2779264
-jest.mock('../main'); // ie the redux store
+const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
+  new Promise((resolve, reject) => resolve({ ok: true, item }));
+
+const handlerType = {
+  type: 'PETS',
+  handlers: [handler],
+};
+const workerQueue = new WorkerQueue([handlerType], {
+  workers: 2,
+});
+workerQueue.init();
 
 describe('FLAG duck', () => {
   describe('Actions', () => {
@@ -177,6 +203,140 @@ describe('FLAG duck', () => {
         const __clearQueue__Action = __clearQueue__();
         const testState = flag(firstState, __clearQueue__Action);
         expect(testState.length).toEqual(0);
+      });
+    });
+  });
+
+  // Set up a state
+  const queueItem1 = {
+    clientMutationId: 1,
+    payload: {},
+    type: 'PET',
+    errors: [],
+    createdAt: new Date().toJSON(),
+  };
+  const queueItem2 = {
+    clientMutationId: 2,
+    payload: {},
+    type: 'PET',
+    errors: [],
+    createdAt: new Date().toJSON(),
+  };
+  const queueItem3 = {
+    clientMutationId: 3,
+    payload: {},
+    type: 'PET',
+    errors: [],
+    createdAt: new Date().toJSON(),
+  };
+  const queueItem4 = {
+    clientMutationId: 4,
+    payload: {},
+    type: 'PET',
+    errors: [],
+    createdAt: new Date().toJSON(),
+  };
+
+  const testState: Store.All = {
+    queue: [queueItem1, queueItem2, queueItem3, queueItem4],
+    flags: [
+      new FlagItem(queueItem1, { status: 'WORKING' }),
+      new FlagItem(queueItem2, { status: 'OK' }),
+      new FlagItem(queueItem3, { status: 'LOCKED' }),
+      new FlagItem(queueItem4, { status: 'HALTED' }),
+    ],
+  };
+
+  describe('Selectors', () => {
+    describe('flagsSelector()', () => {
+      test('exists', () => {
+        expect(flagsSelector).toBeDefined();
+      });
+
+      test('it selects all flags', () => {
+        const queue = flagsSelector(testState, workerQueue);
+        expect(queue).toBeDefined();
+        expect(queue.length).toEqual(testState.queue.length);
+        expect(queue[0].clientMutationId).toEqual(queueItem1.clientMutationId);
+        expect(queue[1].clientMutationId).toEqual(queueItem2.clientMutationId);
+      });
+    });
+
+    describe('flagByClientMutationIdSelector()', () => {
+      test('exists', () => {
+        expect(flagByClientMutationIdSelector).toBeDefined();
+      });
+
+      test('it selects a flag by its clientMutationId', () => {
+        const flag = flagByClientMutationIdSelector(
+          testState,
+          workerQueue,
+          queueItem1.clientMutationId
+        );
+        expect(flag).toBeDefined();
+        expect(flag ? flag.clientMutationId : {}).toEqual(
+          queueItem1.clientMutationId
+        );
+      });
+    });
+
+    describe('lockedFlagsSelector()', () => {
+      test('exists', () => {
+        expect(lockedFlagsSelector).toBeDefined();
+      });
+
+      test('it selects only the locked flags', () => {
+        const locked = lockedFlagsSelector(testState, workerQueue);
+        expect(locked).toBeDefined();
+        expect(locked.length).toEqual(1);
+        expect(
+          locked && locked.length ? locked[0].clientMutationId : {}
+        ).toEqual(queueItem3.clientMutationId);
+      });
+    });
+
+    describe('workingFlagsSelector()', () => {
+      test('exists', () => {
+        expect(workingFlagsSelector).toBeDefined();
+      });
+
+      test('it selects only the working flags', () => {
+        const working = workingFlagsSelector(testState, workerQueue);
+        expect(working).toBeDefined();
+        expect(working.length).toEqual(1);
+        expect(
+          working && working.length ? working[0].clientMutationId : {}
+        ).toEqual(queueItem1.clientMutationId);
+      });
+    });
+
+    describe('haltedFlagsSelector()', () => {
+      test('exists', () => {
+        expect(haltedFlagsSelector).toBeDefined();
+      });
+
+      test('it selects only the halted flags', () => {
+        const halted = haltedFlagsSelector(testState, workerQueue);
+        expect(halted).toBeDefined();
+        expect(halted.length).toEqual(1);
+        expect(
+          halted && halted.length ? halted[0].clientMutationId : {}
+        ).toEqual(queueItem4.clientMutationId);
+      });
+    });
+
+    describe('okFlagsSelector()', () => {
+      test('exists', () => {
+        expect(okFlagsSelector).toBeDefined();
+      });
+
+      test('it selects only the halted flags', () => {
+        const ok = okFlagsSelector(testState, workerQueue);
+        expect(ok).toBeDefined();
+        expect(ok.length).toEqual(1);
+        expect(ok && ok.length ? ok[0].clientMutationId : {}).toEqual(
+          queueItem2.clientMutationId
+        );
       });
     });
   });
