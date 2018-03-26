@@ -1,6 +1,11 @@
-import queue, { addOrUpdateItem, removeItem, QueueActionTypes } from './duck';
+import queue, {
+  addOrUpdateItem,
+  removeItem,
+  QueueActionTypes,
+  queueSelector,
+} from './duck';
 import { Queue } from './types';
-import { HandlerPromiseResponse } from '../types';
+import { HandlerPromiseResponse, Store } from '../types';
 import WorkerQueue from '../WorkerQueue';
 import { __clearQueue__ } from '../duck';
 import { QueueItem } from './item';
@@ -8,7 +13,7 @@ import 'jest';
 
 // Prevents weird jest-only, only-some files error: No reducer provided for key "queue"
 // https://stackoverflow.com/a/47311830/2779264
-jest.mock('../main'); // ie the redux store
+// jest.mock('../main'); // ie the redux store
 
 const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
   new Promise((resolve, reject) => resolve({ ok: true, item }));
@@ -17,6 +22,7 @@ const handlerType = {
   type: 'PETS',
   handlers: [handler],
 };
+const workerQueue = new WorkerQueue([handlerType]);
 
 describe('QUEUE duck', () => {
   const queueItem: Queue.NewItemInput = {
@@ -26,7 +32,7 @@ describe('QUEUE duck', () => {
     },
   };
   // Initialise queue
-  const workerQueue = new WorkerQueue([handlerType]);
+
   describe('Actions', () => {
     describe('addOrUpdateItem()', () => {
       test('it exists', () => {
@@ -107,6 +113,34 @@ describe('QUEUE duck', () => {
         const __clearQueue__Action = __clearQueue__();
         testState = queue(testState, __clearQueue__Action);
         expect(testState.length).toEqual(0);
+      });
+    });
+  });
+
+  describe('Selectors', () => {
+    const clientMutationId = 'sdgxcv';
+    const testState: Store.All = {
+      queue: [
+        {
+          clientMutationId,
+          payload: {},
+          type: 'PET',
+          errors: [],
+          createdAt: new Date().toJSON(),
+        },
+      ],
+      flags: [],
+    };
+
+    describe('queueSelector()', () => {
+      test('it exists', () => {
+        expect(queueSelector).toBeDefined();
+      });
+
+      test('it selects the queue', () => {
+        const fetched = queueSelector(testState, workerQueue);
+        expect(fetched[0]).toBeDefined();
+        expect(fetched[0].clientMutationId).toEqual(clientMutationId);
       });
     });
   });

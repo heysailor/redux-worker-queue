@@ -18,6 +18,7 @@ import allReducers, { __clearQueue__ } from './duck';
 import { Queue } from './queue';
 import { addOrUpdateItem, removeItem } from './queue/duck';
 import { flushAsync } from './flush/duck';
+import { clean } from './flag/duck';
 import { store, initStore } from './store';
 import { middleware } from './middleware';
 
@@ -29,15 +30,16 @@ class WorkerQueue {
   readonly _handlers: HandlersForQueueItemType = {};
   readonly initStore: Function = initStore;
   public EXTERNAL_STORE: boolean = false;
-  readonly defaultRootSelector = (state: any) => {
+  public _defaultRootSelector = (state: any) => {
     return this.EXTERNAL_STORE ? state.workerQueue : state;
   };
-  readonly rootSelector: (state: any) => Store.All = this.defaultRootSelector;
+  public _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
   readonly actions = {
     addOrUpdateItem,
     removeItem,
     __clearQueue__,
     flushAsync,
+    clean,
   };
 
   constructor(
@@ -61,7 +63,7 @@ class WorkerQueue {
         );
       }
       if (opts.reduxRootSelector) {
-        this.rootSelector = opts.reduxRootSelector;
+        this._rootSelector = opts.reduxRootSelector;
       }
     }
 
@@ -147,6 +149,9 @@ class WorkerQueue {
   private onExternalStore() {
     this.EXTERNAL_STORE = true;
   }
+  public rootSelector(state: any): Store.All {
+    return this._rootSelector(state);
+  }
   public init() {
     if (this.EXTERNAL_STORE) {
       throw new Error(`Don't call init when integrating with external redux.`);
@@ -155,7 +160,7 @@ class WorkerQueue {
     // If reduxRootSelector is set and not using external store, it'll stuff things up.
     if (
       !this.EXTERNAL_STORE &&
-      this.rootSelector !== this.defaultRootSelector
+      this._rootSelector !== this._defaultRootSelector
     ) {
       throw new Error(`
       Do not use reduxRootSelector if not connecting to an external redux store. Doing so will likely cause queue to fail.

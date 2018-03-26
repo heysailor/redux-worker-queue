@@ -1,10 +1,9 @@
 import { Dispatch } from 'redux';
-import { filter, differenceBy, uniqBy } from 'lodash';
+import { filter, differenceBy, uniqBy, find } from 'lodash';
 
 import { Flush } from './types';
 
 import { Store } from '../types';
-import { clean } from '../duck';
 import { Queue } from '../queue';
 import { queueSelector } from '../queue/duck';
 import { Flag, FlagItem } from '../flag';
@@ -14,6 +13,9 @@ import {
   haltedFlagsSelector,
   lockedFlagsSelector,
   workingFlagsSelector,
+  flagsSelector,
+  removeFlag,
+  clean,
 } from '../flag/duck';
 import { nextTick } from '../util';
 import WorkerQueue, { INSTANCE } from '../WorkerQueue';
@@ -33,9 +35,6 @@ export const flushAsync = function() {
 
     // Cleanup - remove expired Flags:WORKING|LOCKED...nextTick
     await dispatch(clean());
-
-    // Wait for cleanup action to modify state
-    await nextTick();
 
     // Recursive until no valid items left
     await flush();
@@ -118,7 +117,9 @@ export const flushAsync = function() {
   };
 };
 
-function flushableItemsSelector(state: any, INSTANCE: WorkerQueue) {
+// Selectors
+
+export function flushableItemsSelector(state: any, INSTANCE: WorkerQueue) {
   const badFlags = uniqBy(
     [
       ...haltedFlagsSelector(state, INSTANCE),

@@ -1,14 +1,14 @@
 import { combineReducers, Reducer } from 'redux';
 import { map } from 'lodash';
 
-import { Store, __clearQueue__Action, CleanAction } from './types';
-import queue from './queue/duck';
-import flag from './flag/duck';
+import { Store, __clearQueue__Action } from './types';
+import * as queueDuck from './queue/duck';
+import * as flagsDuck from './flag/duck';
+
 import { INSTANCE } from './WorkerQueue';
 
 export enum ActionTypes {
   __CLEAR__ = '__WORKER_QUEUE__CLEAR__',
-  CLEAN = '__WORKER_QUEUE__CLEAN',
 }
 
 // Actions
@@ -17,15 +17,9 @@ export const __clearQueue__ = (): __clearQueue__Action => {
   return { type: ActionTypes.__CLEAR__ };
 };
 
-export const clean = (): CleanAction => {
-  return {
-    type: ActionTypes.CLEAN,
-  };
-};
-
 const allReducers: Reducer<Store.All> = combineReducers({
-  queue,
-  flag,
+  queue: queueDuck.default,
+  flags: flagsDuck.default,
 });
 
 export default allReducers;
