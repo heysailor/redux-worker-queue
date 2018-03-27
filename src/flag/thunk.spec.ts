@@ -154,7 +154,7 @@ describe('Flag thunk action creators', () => {
       let firstState = testStore.getState();
 
       // confirm LOCKED flag is present and correct
-      const lockFlag = firstState.workerQueue.flags[0];
+      const lockFlag = find(firstState.workerQueue.flags, { status: 'LOCKED' });
       expect(lockFlag.clientMutationId).toEqual(
         queueItemLOCKED.clientMutationId
       );
