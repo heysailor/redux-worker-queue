@@ -67,10 +67,6 @@ describe('WorkerQueue', () => {
 
   describe('methods', () => {
     describe('getHandlersForType()', () => {
-      test('takes a itemType string as its argument', () => {
-        expect(newQueue.getHandlersForType('srhaf').length).toBe(0);
-      });
-
       test('returns a handlers array when called with a corresponding itemType string', () => {
         const type = 'HUMANS';
         const humanHandler = (
@@ -80,14 +76,15 @@ describe('WorkerQueue', () => {
 
         newQueue.registerQueueItemType({
           type,
-          handlers: [handler, humanHandler],
+          handlers: [humanHandler],
         });
         const handlers = newQueue.getHandlersForType(type);
 
         expect(handlers).toBeDefined();
         expect(handlers).toBeInstanceOf(Array);
         expect(handlers[0]).toBeDefined();
-        expect(handlers[1]).toEqual(humanHandler);
+        expect(handlers[0]).toEqual(humanHandler);
+        expect(handlers.length).toEqual(1);
       });
     });
   });
@@ -145,7 +142,7 @@ describe('WorkerQueue', () => {
 
       test('flush() calls the flush action creator', () => {
         expect(newQueue.flush).toBeDefined();
-        const spy = jest.spyOn(newQueue.actions, 'flushAsync');
+        const spy = jest.spyOn(newQueue.actions, 'flush');
 
         newQueue.flush();
         expect(spy).toHaveBeenCalled();

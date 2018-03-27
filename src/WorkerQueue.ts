@@ -6,6 +6,10 @@ import {
   isString,
   isFunction,
 } from 'lodash';
+import { Queue } from './queue';
+import { store, initStore } from './store';
+import { middleware } from './middleware';
+
 import {
   RegisterQueueItemTypeInput,
   WorkerQueueSettings,
@@ -14,20 +18,18 @@ import {
   Store,
   RootSelector,
 } from './types';
-import allReducers, { __clearQueue__ } from './duck';
-import { Queue } from './queue';
-import { addOrUpdateItem, removeItem } from './queue/duck';
-import { flushAsync } from './flush/duck';
-import { clean } from './flag/duck';
-import { store, initStore } from './store';
-import { middleware } from './middleware';
+
+import * as queueDuck from './queue/duck';
+import * as flushDuck from './flush/duck';
+import * as rootDuck from './duck';
+import * as flagDuck from './flag/duck';
 
 export let INSTANCE: WorkerQueue;
 const MAX_WORKERS = 999;
 
 class WorkerQueue {
   readonly settings: WorkerQueueSettings;
-  readonly _handlers: HandlersForQueueItemType = {};
+  public _handlers: HandlersForQueueItemType = {};
   readonly initStore: Function = initStore;
   public EXTERNAL_STORE: boolean = false;
   private _defaultRootSelector = (state: any) => {
@@ -35,11 +37,11 @@ class WorkerQueue {
   };
   private _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
   readonly actions = {
-    addOrUpdateItem,
-    removeItem,
-    __clearQueue__,
-    flushAsync,
-    clean,
+    addOrUpdateItem: queueDuck.addOrUpdateItem,
+    removeItem: queueDuck.removeItem,
+    __clearQueue__: rootDuck.__clearQueue__,
+    flush: flushDuck.flush,
+    clean: flagDuck.clean,
   };
 
   constructor(
@@ -109,10 +111,10 @@ class WorkerQueue {
   }
 
   private addHandlers(type: Queue.ItemType, handlers: Handler[]) {
-    this._handlers[type] = handlers;
+    this._handlers[type] = [...handlers];
   }
   public getHandlersForType(type: Queue.ItemType) {
-    return this._handlers[type] || [];
+    return this._handlers[type];
   }
   public get order(): object {
     return this.settings.order;
@@ -135,7 +137,7 @@ class WorkerQueue {
     store.dispatch(this.actions.removeItem(clientMutationId));
   }
   public flush() {
-    store.dispatch(this.actions.flushAsync());
+    store.dispatch(this.actions.flush());
   }
   public clearQueue() {
     store.dispatch(this.actions.__clearQueue__());
@@ -146,7 +148,7 @@ class WorkerQueue {
   }
   get reducers() {
     this.onExternalStore();
-    return allReducers;
+    return rootDuck.default;
   }
   private onExternalStore() {
     this.EXTERNAL_STORE = true;

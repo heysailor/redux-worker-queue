@@ -7,7 +7,7 @@ import { Queue } from '../queue';
 import { queueSelector } from '../queue/duck';
 import { Action, Store } from '../types';
 import { ActionTypes } from '../duck';
-import { uniqueItems, rejectedItems, nextTick } from '../util';
+import { uniqueItems, rejectedItems, nextTick, orderedItems } from '../util';
 import { rootSelector } from '../store';
 import WorkerQueue, { INSTANCE } from '../WorkerQueue';
 
@@ -96,6 +96,7 @@ export const clean = function() {
           // Shouldn't happen, but sanity check
           if (!queueItem) return;
           const testFlag = new FlagItem(queueItem, flag);
+          console.log('CLEAN testflag', testFlag);
 
           if (testFlag.hash !== flag.hash) {
             // queueItem has changed, therefore out of purgatory
@@ -122,7 +123,7 @@ export default function flagsReducer(
 ): Flag.Store {
   switch (action.type) {
     case FlagActionTypes.ADD_OR_UPDATE_FLAG: {
-      return uniqueItems([action.flag, ...state]);
+      return uniqueItems(orderedItems([action.flag, ...state]));
     }
     case FlagActionTypes.REMOVE_FLAG: {
       return rejectedItems(state, action.clientMutationId);

@@ -8,11 +8,7 @@ export function uniqueItems<T extends Identified>(items: T[]): T[] {
 
 // Uses settings from WorkerQueue instance
 export function orderedItems<T extends Identified>(items: T[]): T[] {
-  return orderBy(
-    items,
-    INSTANCE.settings.order.by,
-    INSTANCE.settings.order.direction
-  );
+  return orderBy(items, INSTANCE.settings.order.by, 'desc');
 }
 
 // Rejects by clientMutationId

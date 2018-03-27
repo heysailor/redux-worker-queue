@@ -3,12 +3,14 @@ import { QueueActionTypes } from './duck';
 export namespace Queue {
   export type Store = Item[];
 
-  export type ItemErrors = Error[] | object[] | string[];
+  export type ItemErrors = any[];
   export type ItemType = string;
 
   export type Item = {
     readonly type: ItemType;
-    readonly payload: object;
+    readonly payload: {
+      [key: string]: any;
+    };
     readonly errors: ItemErrors;
     readonly clientMutationId: ClientMutationId;
     readonly createdAt: string;

@@ -6,7 +6,6 @@ import WorkerQueue from '../WorkerQueue';
 import { Queue } from '../queue';
 import * as flagDuck from './duck';
 import * as queueDuck from '../queue/duck';
-// import { addOrUpdateItem } from '../queue/duck';
 import { HandlerPromiseResponse } from '../types';
 import { FlagItem } from './flag';
 import { Store } from '../types';
@@ -155,7 +154,7 @@ describe('Flag thunk action creators', () => {
       let firstState = testStore.getState();
 
       // confirm LOCKED flag is present and correct
-      const lockFlag = firstState.workerQueue.flags[2];
+      const lockFlag = firstState.workerQueue.flags[0];
       expect(lockFlag.clientMutationId).toEqual(
         queueItemLOCKED.clientMutationId
       );
