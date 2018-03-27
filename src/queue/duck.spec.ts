@@ -4,6 +4,7 @@ import queue, {
   QueueActionTypes,
   queueSelector,
 } from './duck';
+import { find } from 'lodash';
 import { Queue } from './types';
 import { HandlerPromiseResponse, Store } from '../types';
 import WorkerQueue from '../WorkerQueue';
@@ -115,7 +116,13 @@ describe('QUEUE duck', () => {
         const updateSecondItem = addOrUpdateItem(updatedSecondItem);
         const thirdState = queue(secondState, updateSecondItem);
         expect(thirdState.length).toEqual(2);
-        expect(thirdState[1].payload).toMatchObject(newPayload);
+        const updatedItem = find(
+          thirdState,
+          item => item.clientMutationId === secondState[1].clientMutationId
+        );
+        expect(updatedItem ? updatedItem.payload : undefined).toMatchObject(
+          newPayload
+        );
       });
       test('removeItem() --> removes a queue item', () => {
         const addAction = addOrUpdateItem(queueItem);

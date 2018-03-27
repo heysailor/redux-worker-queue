@@ -30,10 +30,10 @@ class WorkerQueue {
   readonly _handlers: HandlersForQueueItemType = {};
   readonly initStore: Function = initStore;
   public EXTERNAL_STORE: boolean = false;
-  public _defaultRootSelector = (state: any) => {
+  private _defaultRootSelector = (state: any) => {
     return this.EXTERNAL_STORE ? state.workerQueue : state;
   };
-  public _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
+  private _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
   readonly actions = {
     addOrUpdateItem,
     removeItem,
@@ -141,9 +141,11 @@ class WorkerQueue {
     store.dispatch(this.actions.__clearQueue__());
   }
   get middleware() {
+    this.onExternalStore();
     return middleware;
   }
   get reducers() {
+    this.onExternalStore();
     return allReducers;
   }
   private onExternalStore() {
