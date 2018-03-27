@@ -4,6 +4,7 @@ import queue, {
   QueueActionTypes,
   queueSelector,
 } from './duck';
+import { find } from 'lodash';
 import { Queue } from './types';
 import { HandlerPromiseResponse, Store } from '../types';
 import WorkerQueue from '../WorkerQueue';
@@ -95,6 +96,33 @@ describe('QUEUE duck', () => {
         const secondState = queue(firstState, addSecond);
         expect(secondState.length).toEqual(2);
         expect(secondState[0]).toMatchObject(queueItem);
+      });
+      test(' addOrUpdateItem() --> it updates a queue item', () => {
+        // Set up two items
+        const addFirst = addOrUpdateItem(queueItem);
+        const firstState = queue(state, addFirst);
+        const addSecond = addOrUpdateItem(queueItem);
+        const secondState = queue(firstState, addSecond);
+        expect(secondState.length).toEqual(2);
+        expect(secondState[0]).toMatchObject(queueItem);
+        expect(secondState[1]).toMatchObject(queueItem);
+
+        // Update the second item
+        const newPayload = { boo: 'bah' };
+        const updatedSecondItem = {
+          ...secondState[1],
+          payload: newPayload,
+        };
+        const updateSecondItem = addOrUpdateItem(updatedSecondItem);
+        const thirdState = queue(secondState, updateSecondItem);
+        expect(thirdState.length).toEqual(2);
+        const updatedItem = find(
+          thirdState,
+          item => item.clientMutationId === secondState[1].clientMutationId
+        );
+        expect(updatedItem ? updatedItem.payload : undefined).toMatchObject(
+          newPayload
+        );
       });
       test('removeItem() --> removes a queue item', () => {
         const addAction = addOrUpdateItem(queueItem);

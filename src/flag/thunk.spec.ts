@@ -1,4 +1,5 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
+import { find } from 'lodash';
 import rootReducer from '../duck';
 import thunk from 'redux-thunk';
 import WorkerQueue from '../WorkerQueue';
@@ -29,28 +30,28 @@ const workerQueue = new WorkerQueue(
 );
 
 // Set up a state
-const queueItem1 = {
+const queueItemWORKING = {
   clientMutationId: 1,
   payload: {},
   type: 'PET',
   errors: [],
   createdAt: new Date().toJSON(),
 };
-const queueItem2 = {
+const queueItemOK = {
   clientMutationId: 2,
   payload: {},
   type: 'PET',
   errors: [],
   createdAt: new Date().toJSON(),
 };
-const queueItem3 = {
+const queueItemLOCKED = {
   clientMutationId: 3,
   payload: {},
   type: 'PET',
   errors: [],
   createdAt: new Date().toJSON(),
 };
-const queueItem4 = {
+const queueItemHALTED = {
   clientMutationId: 4,
   payload: {},
   type: 'PET',
@@ -59,12 +60,16 @@ const queueItem4 = {
 };
 
 const testState: Store.All = {
-  queue: [queueItem1, queueItem2, queueItem3, queueItem4],
+  queue: [queueItemWORKING, queueItemOK, queueItemLOCKED, queueItemHALTED],
   flags: [
-    new FlagItem(queueItem1, { status: 'WORKING' }),
-    new FlagItem(queueItem2, { status: 'OK' }),
-    new FlagItem(queueItem3, { status: 'LOCKED' }),
-    new FlagItem(queueItem4, { status: 'HALTED' }),
+    new FlagItem(queueItemWORKING, { status: 'WORKING' }),
+    new FlagItem(queueItemOK, { status: 'OK' }),
+    // Make flag item with identical hash, lastHash
+    new FlagItem(
+      queueItemLOCKED,
+      new FlagItem(queueItemLOCKED, { status: 'LOCKED' })
+    ),
+    new FlagItem(queueItemHALTED, { status: 'HALTED' }),
   ],
 };
 
@@ -132,6 +137,7 @@ describe('Flag thunk action creators', () => {
       testStore.dispatch(
         flagDuck.addOrUpdateFlag(newItem, { status: 'WORKING' })
       );
+
       // Now get rid of it from the queue
       testStore.dispatch(queueDuck.removeItem(newItem.clientMutationId));
       // Settle state
@@ -144,6 +150,51 @@ describe('Flag thunk action creators', () => {
       expect(result).toEqual(true);
     });
 
-    // TODO Removes HALT from changed queueItems
+    test('it changes LOCKED flags for queueItems which have subsequently changed to OK', async () => {
+      await cleanPromiseCreator(testStore.dispatch, testStore.getState);
+      let firstState = testStore.getState();
+
+      // confirm LOCKED flag is present and correct
+      const lockFlag = firstState.workerQueue.flags[2];
+      expect(lockFlag.clientMutationId).toEqual(
+        queueItemLOCKED.clientMutationId
+      );
+      expect(lockFlag.status).toEqual('LOCKED');
+      expect(lockFlag.hash).toEqual(lockFlag.lastHash);
+
+      // change queueItem
+      const stateQueueItemLocked = find(
+        firstState.workerQueue.queue,
+        item => item.clientMutationId === lockFlag.clientMutationId
+      );
+      const newPayload = { new: 'data' };
+      testStore.dispatch(
+        queueDuck.addOrUpdateItem({
+          ...stateQueueItemLocked,
+          payload: newPayload,
+        })
+      );
+
+      // Check change has occured
+      const secondState = testStore.getState();
+      expect(
+        find(
+          secondState.workerQueue.queue,
+          item =>
+            item.clientMutationId === stateQueueItemLocked.clientMutationId
+        ).payload
+      ).toMatchObject(newPayload);
+
+      // Now clean, and check flag has been removed.
+      testStore.dispatch(flagDuck.clean());
+      const thirdState = testStore.getState();
+
+      const postItemChangeFlag = find(
+        thirdState.workerQueue.flags,
+        flag => flag.clientMutationId === lockFlag.clientMutationId
+      );
+      expect(postItemChangeFlag).toBeDefined();
+      expect(postItemChangeFlag.status).toEqual('OK');
+    });
   });
 });
