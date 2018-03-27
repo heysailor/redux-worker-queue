@@ -1,4 +1,5 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
+import { find } from 'lodash';
 import rootReducer from '../duck';
 import thunk from 'redux-thunk';
 import WorkerQueue from '../WorkerQueue';
@@ -64,7 +65,8 @@ const testState: Store.All = {
     new FlagItem(queueItem1, { status: 'WORKING' }),
     new FlagItem(queueItem2, { status: 'OK' }),
     new FlagItem(queueItem3, { status: 'LOCKED' }),
-    new FlagItem(queueItem4, { status: 'HALTED' }),
+    // Make flag item with identical hash, lastHash
+    new FlagItem(queueItem4, new FlagItem(queueItem4, { status: 'HALTED' })),
   ],
 };
 
@@ -132,6 +134,7 @@ describe('Flag thunk action creators', () => {
       testStore.dispatch(
         flagDuck.addOrUpdateFlag(newItem, { status: 'WORKING' })
       );
+
       // Now get rid of it from the queue
       testStore.dispatch(queueDuck.removeItem(newItem.clientMutationId));
       // Settle state
@@ -144,6 +147,32 @@ describe('Flag thunk action creators', () => {
       expect(result).toEqual(true);
     });
 
-    // TODO Removes HALT from changed queueItems
+    test('it removes HALT flags for queueItems which have subsequently changed', async () => {
+      await cleanPromiseCreator(testStore.dispatch, testStore.getState);
+      let firstState = testStore.getState();
+
+      // confirm HALT is present and correct to begin
+      const haltFlag = firstState.workerQueue.flags[4];
+      expect(haltFlag.clientMutationId).toEqual(queueItem4.clientMutationId);
+
+      // change queueItem
+      const actualQueueItem4 = firstState.workerQueue.queue[3];
+      const newPayload = { new: 'data' };
+      testStore.dispatch(
+        queueDuck.addOrUpdateItem({
+          ...actualQueueItem4,
+          payload: newPayload,
+        })
+      );
+      // Check change has occured
+      const secondState = testStore.getState();
+      console.log('NEW QUEUE', secondState.workerQueue.queue);
+      expect(
+        find(
+          secondState.workerQueue.queue,
+          item => item.clientMutationId === actualQueueItem4.clientMutationId
+        ).payload
+      ).toMatchObject(newPayload);
+    });
   });
 });

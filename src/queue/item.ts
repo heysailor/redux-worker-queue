@@ -10,6 +10,7 @@ export class QueueItem implements Queue.Item {
   readonly createdAt: string = new Date().toJSON();
 
   constructor(item: Queue.NewItemInput | Queue.Item) {
-    Object.assign(this, pick(cloneDeep(item), Object.keys(this)));
+    const safe = pick(item, Object.keys(this));
+    Object.assign(this, { ...safe });
   }
 }

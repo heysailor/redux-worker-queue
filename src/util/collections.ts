@@ -3,7 +3,7 @@ import { INSTANCE } from '../WorkerQueue';
 
 // All return new array
 export function uniqueItems<T extends Identified>(items: T[]): T[] {
-  return uniqBy(items, (item: T) => item.clientMutationId);
+  return uniqBy(items, (item: T) => item && item.clientMutationId);
 }
 
 // Uses settings from WorkerQueue instance

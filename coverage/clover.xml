@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1522103553419" clover="3.2.0">
-  <project timestamp="1522103553419" name="All files">
-    <metrics statements="280" coveredstatements="222" conditionals="135" coveredconditionals="90" methods="64" coveredmethods="56" elements="479" coveredelements="368" complexity="0" loc="280" ncloc="280" packages="5" files="18" classes="18">
+<coverage generated="1522134939977" clover="3.2.0">
+  <project timestamp="1522134939977" name="All files">
+    <metrics statements="281" coveredstatements="223" conditionals="137" coveredconditionals="92" methods="64" coveredmethods="56" elements="482" coveredelements="371" complexity="0" loc="281" ncloc="281" packages="5" files="18" classes="18">
       <package name="src">
         <metrics statements="82" coveredstatements="73" conditionals="62" coveredconditionals="49" methods="24" coveredmethods="22"/>
         <file name="WorkerQueue.ts" path="/Users/heysailor/dev/redux-worker-queue/src/WorkerQueue.ts">
@@ -18,7 +18,7 @@
           <line num="31" count="6" type="stmt"/>
           <line num="32" count="6" type="stmt"/>
           <line num="33" count="6" type="stmt"/>
-          <line num="34" count="36" type="cond" truecount="1" falsecount="1"/>
+          <line num="34" count="40" type="cond" truecount="1" falsecount="1"/>
           <line num="36" count="6" type="stmt"/>
           <line num="37" count="6" type="stmt"/>
           <line num="49" count="6" type="cond" truecount="2" falsecount="0"/>
@@ -55,7 +55,7 @@
           <line num="144" count="1" type="stmt"/>
           <line num="147" count="0" type="stmt"/>
           <line num="150" count="0" type="stmt"/>
-          <line num="153" count="36" type="stmt"/>
+          <line num="153" count="40" type="stmt"/>
           <line num="156" count="3" type="cond" truecount="1" falsecount="1"/>
           <line num="157" count="0" type="stmt"/>
           <line num="161" count="3" type="cond" truecount="1" falsecount="1"/>
@@ -99,7 +99,7 @@
           <line num="17" count="7" type="cond" truecount="1" falsecount="1"/>
           <line num="19" count="7" type="stmt"/>
           <line num="24" count="6" type="stmt"/>
-          <line num="27" count="12" type="stmt"/>
+          <line num="27" count="14" type="stmt"/>
         </file>
       </package>
       <package name="src.flag">
@@ -127,17 +127,17 @@
           <line num="52" count="2" type="stmt"/>
           <line num="59" count="6" type="stmt"/>
           <line num="60" count="3" type="stmt"/>
-          <line num="64" count="4" type="stmt"/>
-          <line num="67" count="4" type="stmt"/>
+          <line num="64" count="5" type="stmt"/>
+          <line num="67" count="5" type="stmt"/>
           <line num="70" count="0" type="stmt"/>
-          <line num="73" count="4" type="cond" truecount="1" falsecount="1"/>
+          <line num="73" count="5" type="cond" truecount="1" falsecount="1"/>
           <line num="75" count="0" type="stmt"/>
           <line num="77" count="0" type="stmt"/>
           <line num="78" count="0" type="stmt"/>
           <line num="83" count="0" type="stmt"/>
-          <line num="87" count="4" type="stmt"/>
-          <line num="88" count="4" type="stmt"/>
-          <line num="90" count="4" type="cond" truecount="1" falsecount="1"/>
+          <line num="87" count="5" type="stmt"/>
+          <line num="88" count="5" type="stmt"/>
+          <line num="90" count="5" type="cond" truecount="1" falsecount="1"/>
           <line num="91" count="0" type="stmt"/>
           <line num="93" count="0" type="stmt"/>
           <line num="97" count="0" type="cond" truecount="0" falsecount="2"/>
@@ -146,19 +146,19 @@
           <line num="102" count="0" type="stmt"/>
           <line num="103" count="0" type="stmt"/>
           <line num="106" count="0" type="stmt"/>
-          <line num="113" count="4" type="stmt"/>
+          <line num="113" count="5" type="stmt"/>
           <line num="119" count="6" type="stmt"/>
-          <line num="123" count="28" type="stmt"/>
+          <line num="123" count="29" type="stmt"/>
           <line num="125" count="6" type="stmt"/>
           <line num="128" count="1" type="stmt"/>
           <line num="131" count="2" type="stmt"/>
-          <line num="134" count="19" type="stmt"/>
+          <line num="134" count="20" type="stmt"/>
           <line num="141" count="6" type="stmt"/>
-          <line num="142" count="24" type="stmt"/>
+          <line num="142" count="26" type="stmt"/>
           <line num="145" count="6" type="stmt"/>
           <line num="149" count="1" type="stmt"/>
           <line num="151" count="6" type="stmt"/>
-          <line num="154" count="8" type="stmt"/>
+          <line num="154" count="9" type="stmt"/>
           <line num="156" count="6" type="stmt"/>
           <line num="159" count="5" type="stmt"/>
           <line num="161" count="6" type="stmt"/>
@@ -170,18 +170,18 @@
           <metrics statements="15" coveredstatements="13" conditionals="8" coveredconditionals="6" methods="1" coveredmethods="1"/>
           <line num="4" count="6" type="stmt"/>
           <line num="6" count="6" type="stmt"/>
-          <line num="8" count="25" type="stmt"/>
-          <line num="12" count="25" type="stmt"/>
-          <line num="15" count="25" type="cond" truecount="1" falsecount="1"/>
+          <line num="8" count="26" type="stmt"/>
+          <line num="12" count="26" type="stmt"/>
+          <line num="15" count="26" type="cond" truecount="1" falsecount="1"/>
           <line num="16" count="0" type="stmt"/>
-          <line num="19" count="25" type="cond" truecount="2" falsecount="0"/>
+          <line num="19" count="26" type="cond" truecount="2" falsecount="0"/>
           <line num="20" count="1" type="stmt"/>
-          <line num="25" count="24" type="stmt"/>
-          <line num="26" count="24" type="cond" truecount="2" falsecount="0"/>
-          <line num="27" count="24" type="stmt"/>
-          <line num="28" count="24" type="stmt"/>
-          <line num="29" count="24" type="cond" truecount="1" falsecount="1"/>
-          <line num="30" count="24" type="stmt"/>
+          <line num="25" count="25" type="stmt"/>
+          <line num="26" count="25" type="cond" truecount="2" falsecount="0"/>
+          <line num="27" count="25" type="stmt"/>
+          <line num="28" count="25" type="stmt"/>
+          <line num="29" count="25" type="cond" truecount="1" falsecount="1"/>
+          <line num="30" count="25" type="stmt"/>
           <line num="32" count="0" type="stmt"/>
         </file>
         <file name="index.ts" path="/Users/heysailor/dev/redux-worker-queue/src/flag/index.ts">
@@ -260,7 +260,7 @@
         </file>
       </package>
       <package name="src.queue">
-        <metrics statements="30" coveredstatements="30" conditionals="7" coveredconditionals="7" methods="6" coveredmethods="6"/>
+        <metrics statements="31" coveredstatements="31" conditionals="7" coveredconditionals="7" methods="6" coveredmethods="6"/>
         <file name="duck.ts" path="/Users/heysailor/dev/redux-worker-queue/src/queue/duck.ts">
           <metrics statements="19" coveredstatements="19" conditionals="7" coveredconditionals="7" methods="5" coveredmethods="5"/>
           <line num="1" count="6" type="stmt"/>
@@ -271,17 +271,17 @@
           <line num="10" count="6" type="stmt"/>
           <line num="11" count="6" type="stmt"/>
           <line num="16" count="6" type="stmt"/>
-          <line num="19" count="9" type="stmt"/>
+          <line num="19" count="13" type="stmt"/>
           <line num="26" count="6" type="stmt"/>
           <line num="29" count="4" type="stmt"/>
           <line num="36" count="6" type="stmt"/>
-          <line num="40" count="28" type="stmt"/>
-          <line num="42" count="7" type="stmt"/>
+          <line num="40" count="32" type="stmt"/>
+          <line num="42" count="11" type="stmt"/>
           <line num="45" count="3" type="stmt"/>
           <line num="48" count="2" type="stmt"/>
           <line num="51" count="16" type="stmt"/>
           <line num="58" count="6" type="stmt"/>
-          <line num="59" count="12" type="stmt"/>
+          <line num="59" count="14" type="stmt"/>
         </file>
         <file name="index.ts" path="/Users/heysailor/dev/redux-worker-queue/src/queue/index.ts">
           <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
@@ -289,28 +289,29 @@
           <line num="2" count="1" type="stmt"/>
         </file>
         <file name="item.ts" path="/Users/heysailor/dev/redux-worker-queue/src/queue/item.ts">
-          <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+          <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
           <line num="1" count="7" type="stmt"/>
           <line num="2" count="7" type="stmt"/>
           <line num="5" count="7" type="stmt"/>
-          <line num="6" count="13" type="stmt"/>
-          <line num="7" count="13" type="stmt"/>
-          <line num="8" count="13" type="stmt"/>
-          <line num="9" count="13" type="stmt"/>
-          <line num="10" count="13" type="stmt"/>
-          <line num="13" count="13" type="stmt"/>
+          <line num="6" count="17" type="stmt"/>
+          <line num="7" count="17" type="stmt"/>
+          <line num="8" count="17" type="stmt"/>
+          <line num="9" count="17" type="stmt"/>
+          <line num="10" count="17" type="stmt"/>
+          <line num="13" count="17" type="stmt"/>
+          <line num="14" count="17" type="stmt"/>
         </file>
       </package>
       <package name="src.util">
-        <metrics statements="32" coveredstatements="31" conditionals="4" coveredconditionals="3" methods="11" coveredmethods="11"/>
+        <metrics statements="32" coveredstatements="31" conditionals="6" coveredconditionals="5" methods="11" coveredmethods="11"/>
         <file name="collections.ts" path="/Users/heysailor/dev/redux-worker-queue/src/util/collections.ts">
-          <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5"/>
+          <metrics statements="9" coveredstatements="9" conditionals="2" coveredconditionals="2" methods="5" coveredmethods="5"/>
           <line num="1" count="6" type="stmt"/>
           <line num="2" count="6" type="stmt"/>
           <line num="5" count="6" type="stmt"/>
-          <line num="6" count="25" type="stmt"/>
+          <line num="6" count="36" type="cond" truecount="2" falsecount="0"/>
           <line num="10" count="6" type="stmt"/>
-          <line num="11" count="7" type="stmt"/>
+          <line num="11" count="11" type="stmt"/>
           <line num="19" count="6" type="stmt"/>
           <line num="23" count="4" type="stmt"/>
           <line num="25" count="8" type="stmt"/>
@@ -320,17 +321,17 @@
           <line num="1" count="6" type="stmt"/>
           <line num="3" count="6" type="stmt"/>
           <line num="4" count="6" type="stmt"/>
-          <line num="6" count="154" type="stmt"/>
-          <line num="7" count="154" type="stmt"/>
-          <line num="9" count="154" type="cond" truecount="2" falsecount="0"/>
-          <line num="14" count="72" type="stmt"/>
-          <line num="15" count="130" type="stmt"/>
-          <line num="17" count="82" type="cond" truecount="1" falsecount="1"/>
+          <line num="6" count="160" type="stmt"/>
+          <line num="7" count="160" type="stmt"/>
+          <line num="9" count="160" type="cond" truecount="2" falsecount="0"/>
+          <line num="14" count="75" type="stmt"/>
+          <line num="15" count="135" type="stmt"/>
+          <line num="17" count="85" type="cond" truecount="1" falsecount="1"/>
           <line num="18" count="0" type="stmt"/>
-          <line num="20" count="82" type="stmt"/>
-          <line num="23" count="154" type="stmt"/>
+          <line num="20" count="85" type="stmt"/>
+          <line num="23" count="160" type="stmt"/>
           <line num="27" count="6" type="stmt"/>
-          <line num="29" count="24" type="stmt"/>
+          <line num="29" count="25" type="stmt"/>
           <line num="34" count="6" type="stmt"/>
         </file>
         <file name="index.ts" path="/Users/heysailor/dev/redux-worker-queue/src/util/index.ts">
@@ -348,7 +349,7 @@
         <file name="timestamp.ts" path="/Users/heysailor/dev/redux-worker-queue/src/util/timestamp.ts">
           <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
           <line num="1" count="6" type="stmt"/>
-          <line num="2" count="25" type="stmt"/>
+          <line num="2" count="26" type="stmt"/>
         </file>
       </package>
     </metrics>
