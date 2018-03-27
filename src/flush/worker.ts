@@ -18,6 +18,8 @@ export class FlushWorker {
   }
 
   public async process(): Flush.WorkerStartResponse {
+    // console.log(`FlushWorker.process(): called for item`, this.item);
+
     if (!this.handlers || !this.handlers.length) {
       // reject(
       throw new Error(
@@ -35,7 +37,7 @@ export class FlushWorker {
 
     // Handler should only error if coding snafu. Catch error so there isn't a meltdown.
     try {
-      return handler(this.item);
+      return await handler(this.item);
     } catch (e) {
       if (console && console.error) {
         console.error(

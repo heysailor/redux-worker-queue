@@ -1,7 +1,7 @@
 import { cloneDeep, pick } from 'lodash';
 import { Flag } from './types';
 import { Queue } from '../queue';
-import { hash, getTimestamp } from '../util';
+import { hash } from '../util';
 
 export class FlagItem implements Flag.Item {
   readonly clientMutationId: ClientMutationId;
@@ -9,7 +9,7 @@ export class FlagItem implements Flag.Item {
   readonly status: Flag.ItemStatus;
   readonly hash: string;
   readonly lastHash: string | undefined;
-  readonly timestamp: number = getTimestamp();
+  readonly createdAt: string = new Date().toJSON();
 
   constructor(queueItem: Queue.Item, flag: Flag.Item | Flag.NewItemInput) {
     if (!flag.status) {

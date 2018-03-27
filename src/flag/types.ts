@@ -7,7 +7,7 @@ export namespace Flag {
     readonly status: ItemStatus;
     readonly hash: string;
     readonly lastHash: string | undefined;
-    readonly timestamp: number;
+    readonly createdAt: string;
   };
 
   export type NewItemInput = {
