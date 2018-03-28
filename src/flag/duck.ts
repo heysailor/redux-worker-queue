@@ -96,7 +96,6 @@ export const clean = function() {
           // Shouldn't happen, but sanity check
           if (!queueItem) return;
           const testFlag = new FlagItem(queueItem, flag);
-          console.log('CLEAN testflag', testFlag);
 
           if (testFlag.hash !== flag.hash) {
             // queueItem has changed, therefore out of purgatory
