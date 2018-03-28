@@ -39,7 +39,7 @@ Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the item type as `PE
       payload: myPet,
     });
 
-The Buster is now stored in the queue.
+The Buster `QueueItem` is now stored in the queue.
 
 ### 3. Flush the queue at your leisure.
 

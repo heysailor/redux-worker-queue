@@ -1,8 +1,7 @@
 {
   "name": "redux-worker-queue",
-  "version": "1.0.0",
-  "description":
-    "Redux powered queue for the processing of serializable objects through sequential custom handlers, by parallel workers, with error and endless loop protection. Aimed at complex deferred offline persistence handling.",
+  "version": "1.0.9",
+  "description": "Redux powered queue for the processing of serializable objects through sequential custom handlers, by parallel workers, with error and endless loop protection. Aimed at complex deferred offline persistence handling.",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -39,10 +38,19 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
-    "testPathIgnorePatterns": ["node_modules", "lib/*.*"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testPathIgnorePatterns": [
+      "node_modules",
+      "lib/*.*"
+    ],
     "collectCoverage": true,
-    "setupTestFrameworkScriptFile":
-      "jest-mock-console/dist/setupTestFramework.js"
+    "setupTestFrameworkScriptFile": "jest-mock-console/dist/setupTestFramework.js"
   }
 }
