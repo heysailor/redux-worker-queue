@@ -18,7 +18,7 @@ npm manifest:
     "name": "redux-worker-queue",
     "version": "0.2.0",
     "description": "WIP. Redux powered queue for the processing of objects via customisable workers, with persistence, validation and linking capability. Suited to complex deferred offline persistence handling.",
-    "main": "index.js",
+    "main": "./lib/index.js",
     "scripts": {
       "test": "jest",
       "test-watch": "jest --watch",

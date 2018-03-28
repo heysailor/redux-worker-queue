@@ -55,23 +55,23 @@ export const flush = function() {
     async function flush(item: Queue.Item): Promise<boolean> {
       const flushId = shortid.generate();
       activeWorkers.push([flushId, item.clientMutationId]);
-      console && console.log
-        ? console.log(
-            `${flushId}:${
-              item.createdAt
-            }|flushWorker fired at ${new Date().toJSON()}`
-          )
-        : null;
+      // console && console.log
+      //   ? console.log(
+      //       `${flushId}:${
+      //         item.createdAt
+      //       }|flushWorker fired at ${new Date().toJSON()}`
+      //     )
+      //   : null;
 
       const result = await flaggedWorker(item, flushId);
 
-      console && console.log
-        ? console.log(
-            `${flushId}:${
-              item.createdAt
-            }|flushWorker finished at ${new Date().toJSON()}`
-          )
-        : null;
+      // console && console.log
+      //   ? console.log(
+      //       `${flushId}:${
+      //         item.createdAt
+      //       }|flushWorker finished at ${new Date().toJSON()}`
+      //     )
+      //   : null;
       activeWorkers = remove(activeWorkers, reg => reg[0] === flushId);
 
       return result;
@@ -151,13 +151,13 @@ export const flush = function() {
 
       // This really shouldn't happen. Safely log, and exit.
       if (!flag) {
-        if (console && console.error) {
-          console.error(
-            `Flag should be present for queue item ${
-              queueItem.clientMutationId
-            }`
-          );
-        }
+        // if (console && console.error) {
+        //   console.error(
+        //     `Flag should be present for queue item ${
+        //       queueItem.clientMutationId
+        //     }`
+        //   );
+        // }
         return false;
       }
       // Is there another handler for this item, or is it done?
@@ -192,15 +192,15 @@ export const flush = function() {
 
       await save(result.item);
 
-      console && console.log
-        ? console.log(
-            `[${flushId}:${
-              result.item.clientMutationId
-            }]flaggedWorker: Done, outcome flag is ${
-              newFlag ? newFlag.status : null
-            }`
-          )
-        : null;
+      // console && console.log
+      //   ? console.log(
+      //       `[${flushId}:${
+      //         result.item.clientMutationId
+      //       }]flaggedWorker: Done, outcome flag is ${
+      //         newFlag ? newFlag.status : null
+      //       }`
+      //     )
+      //   : null;
       return true;
     }
   };

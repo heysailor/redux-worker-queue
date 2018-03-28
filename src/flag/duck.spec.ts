@@ -18,7 +18,7 @@ import { FlagItem } from './flag';
 import rootReducer, { __clearQueue__ } from '../duck';
 import { Store } from '../types';
 import { HandlerPromiseResponse } from '../types';
-import { WorkerQueue } from '../main';
+import WorkerQueue from '../index';
 import { nextTick } from '../util';
 
 const queueItem = new QueueItem({

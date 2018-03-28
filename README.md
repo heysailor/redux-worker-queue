@@ -8,9 +8,15 @@ Can be used as a standalone module without having to touch redux, alternatively 
 
 ### 1. Initialization
 
-Let's save our dog, Buster. Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type to handle. The type includes handlers which return a special object.
+Let's save our dog, Buster. Grab the module from npm with `yarn` or `npm`:
 
-    import { WorkerQueue } from 'redux-worker-queue';
+    yarn add redux-worker-queue
+
+    npm install --save redux-worker-queue
+
+Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type to handle. The type includes handlers which return a special object.
+
+    import WorkerQueue from 'redux-worker-queue';
 
     // Initialise queue
     const petType = {
@@ -26,7 +32,7 @@ Let's save our dog, Buster. Import the `WorkerQueue` constructor, and initialize
 
 ### 2. Add an item to the queue
 
-Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the item type as `PET`, and including Buster's information as the `payload`.
+Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the `type` as 'PET', and including Buster's information as the `payload`.
 
     const myPet = {
       name: 'Buster',
@@ -34,7 +40,7 @@ Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the item type as `PE
     };
 
     // Add Buster to the queue.
-    const id = myQueue.addOrUpdateItem({
+    const id = myQueue.addOrUpdateQueueItem({
       type: 'PET',
       payload: myPet,
     });
@@ -90,7 +96,7 @@ One or more workers process the queue, applying the correct handler for the Queu
 Import the queue middleware, and add the queue reducers:
 
     import { createStore, applyMiddleware } from 'redux'
-    import { WorkerQueue, workerQueueMiddleware,  } from 'redux-worker-queue';
+    import WorkerQueue from 'redux-worker-queue';
 
     import myAwesomeReducer from './reducers';
     import {
@@ -109,10 +115,12 @@ Import the queue middleware, and add the queue reducers:
       ]
     });
 
-    // Create your store with workerQueue middleware applied
+    // Create your store with a workerQueue key and workerQueue middleware applied
     let store = createStore(
-      myAwesomeReducer,
-      workerQueue: workerQueue.reducer,
+      {
+        myState: myAwesomeReducer,
+        workerQueue: workerQueue.reducer
+      },
       applyMiddleware(workerQueue.middleware)
     );
 
@@ -134,14 +142,14 @@ Use the queue as before, but this time you can also send actions directly:
     store.dispatch(addBusterAction); // Done!
 
     // Or, use the queue as directly
-    const id = myQueue.addOrUpdateItem({
+    const id = myQueue.addOrUpdateQueueItem({
       type: 'PET',
       payload: myPet,
     }); // Done as well.
 
 If you want to use a custom root key, specify it with the `reduxRootSelector` setting:
 
-    // Initialise the Worker WorkerQueue as usual, but passing reduxRootSelector setting
+    // Initialise the WorkerQueue as usual, but passing reduxRootSelector setting
     const workerQueue = new WorkerQueue({
       type: 'PET',
       handlers: [
@@ -156,18 +164,20 @@ If you want to use a custom root key, specify it with the `reduxRootSelector` se
 
     // Create your store the custom queue key
     let store = createStore(
-      myAwesomeReducer,
-      applyMiddleware(workerQueueMiddleware)
+      {
+        myState: myAwesomeReducer,
 
-      // Same key as specified in reduxRootSelector
-      myAwesomeQueue: workerQueue.reducer,
+        // Same key as specified in reduxRootSelector
+        myAwesomeQueue: workerQueue.reducer,
+      },
+      applyMiddleware(workerQueue.middleware)
     );
 
 ## API
 
 ### `WorkerQueue:queue` constructor
 
-Call `new WorkerQueue` to obtain the queue instance. Allows only one instance to be made.
+Call `new WorkerQueue()` to obtain the queue instance. Allows only one instance to be made.
 
 Takes a single `TypeRegistration` or array of `TypeRegistration` objects, and an optional `Settings` object.
 

@@ -17,7 +17,6 @@ export function flushableItemsSelector(state: any, INSTANCE: WorkerQueue) {
     ],
     'clientMutationId'
   );
-  console.log('BAD FLAGS', badFlags);
   return differenceBy(
     queueDuck.queueSelector(state, INSTANCE),
     badFlags,

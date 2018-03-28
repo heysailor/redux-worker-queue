@@ -7,7 +7,8 @@ import { FlagItem } from '../flag';
 import { clean } from '../flag/duck';
 import { Store } from '../types';
 import { HandlerPromiseResponse } from '../types';
-import { WorkerQueue, store } from '../main';
+import { store } from '../store';
+import WorkerQueue from '../index';
 
 const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
   new Promise((resolve, reject) => resolve({ ok: true, item }));
