@@ -36,7 +36,6 @@ export class FlushWorker {
     try {
       return await handler(this.item);
     } catch (e) {
-      console.error('wJBDKSX,Z');
       if (console && console.error) {
         console.error(
           `Your handler for queued item with clientMutationId ${
