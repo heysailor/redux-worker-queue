@@ -32,7 +32,7 @@ Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type
 
 ### 2. Add an item to the queue
 
-Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the item type as `PET`, and including Buster's information as the `payload`.
+Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the `type` as 'PET', and including Buster's information as the `payload`.
 
     const myPet = {
       name: 'Buster',
@@ -149,7 +149,7 @@ Use the queue as before, but this time you can also send actions directly:
 
 If you want to use a custom root key, specify it with the `reduxRootSelector` setting:
 
-    // Initialise the Worker WorkerQueue as usual, but passing reduxRootSelector setting
+    // Initialise the WorkerQueue as usual, but passing reduxRootSelector setting
     const workerQueue = new WorkerQueue({
       type: 'PET',
       handlers: [
