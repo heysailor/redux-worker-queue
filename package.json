@@ -1,16 +1,20 @@
 {
   "name": "redux-worker-queue",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description":
-    "WIP. Redux powered queue for the processing of objects via customisable workers, with persistence, validation and linking capability. Suited to complex deferred offline persistence handling.",
+    "Redux powered queue for the processing of serializable objects through sequential custom handlers, by parallel workers, with error and endless loop protection. Aimed at complex deferred offline persistence handling.",
   "main": "index.js",
   "scripts": {
     "test": "jest",
     "test-watch": "jest --watch",
     "build": "tsc"
   },
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heysailor/redux-worker-queue.git"
+  },
+  "author": "Nick McIntosh",
+  "license": "MIT",
   "devDependencies": {
     "@types/jest": "^22.2.0",
     "@types/lodash": "^4.14.105",

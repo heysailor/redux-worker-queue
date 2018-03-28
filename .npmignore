@@ -1,0 +1,11 @@
+./coverage
+./src
+./node_modules
+.coveralls.yml
+.travis.yml
+./scripts
+TODO
+tsconfig.json
+tslint.json
+yarn-error.log
+yarn.lock
