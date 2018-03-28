@@ -14,7 +14,7 @@ Let's save our dog, Buster. Grab the module from npm with `yarn` or `npm`:
 
     npm install --save redux-worker-queue
 
-Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type to handle. The type includes handlers which return a special object.
+Import the `WorkerQueue` constructor, and initialize the queue with a `TypeRegistration`. We'll include a `type` of 'PET', and pet handlers which return promises.
 
     import WorkerQueue from 'redux-worker-queue';
 
@@ -32,7 +32,7 @@ Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type
 
 ### 2. Add an item to the queue
 
-Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the `type` as 'PET', and including Buster's information as the `payload`.
+Call `addOrUpdateQueueItem()` with a `NewQueueItem` - specifying the `type` as 'PET', and including Buster's custom information as the `payload`.
 
     const myPet = {
       name: 'Buster',
@@ -45,7 +45,7 @@ Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the `type` as 'PET',
       payload: myPet,
     });
 
-The Buster `QueueItem` is now stored in the queue.
+Buster's `QueueItem` is now stored in the queue.
 
 ### 3. Flush the queue at your leisure.
 
@@ -53,7 +53,7 @@ When you're ready, call `flush()`.
 
     myPetsQueue.flush();
 
-Buster will now be handed to `isMyPetValidAsync`...and if he's valid, to `saveMyPetAsync`...and if that's successful, removed off the queue. Voilà! You've saved him!
+Buster will now be handed to `isMyPetValidAsync`...and if he's valid, to `saveMyPetAsync`...and if that's successful, he's removed off the queue. Voilà! You've saved him!
 
 ## Handlers
 
