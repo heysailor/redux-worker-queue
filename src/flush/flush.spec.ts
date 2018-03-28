@@ -214,7 +214,7 @@ describe('FLUSH thunk action creators', () => {
 
         setTimeout(() => {
           callback();
-        }, 2000);
+        }, 50);
       });
     });
   });
