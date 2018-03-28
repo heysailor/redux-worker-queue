@@ -4,4 +4,4 @@ node_js:
 cache: yarn
 after_success:
   - ./coveralls.sh
-  - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && npm publish
+  - test $TRAVIS_BRANCH == "master" && npm publish
