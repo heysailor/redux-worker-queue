@@ -12,4 +12,3 @@ deploy:
   on:
     tags: true
     repo: heysailor/redux-worker-queue
-    branch: master
