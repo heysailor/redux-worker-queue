@@ -1,7 +1,14 @@
 language: node_js
 node_js:
-  - "8"
+- '8'
 cache: yarn
 after_success:
-  - ./coveralls.sh
-  - test $TRAVIS_BRANCH == "master" && npm publish
+- "./coveralls.sh"
+deploy:
+  provider: npm
+  email: nick@nickmcintosh.net
+  api_key:
+    secure: RKGNehOP/GCw3m/rIw044IxgLzUXtjN9/Xi24rEIDT65kQnIWpcX3FBf7uqNFd10FKRynfZSgCy5oTgYY1J04sy+NYIfOINTPnsF0jdks/fBwuyxHU3otXHYLsiJOUwksG2X6mqr/Y3qH6SYXlfrFqIPzk/BCK5MfrKFhPoMG0tYF/9mXPiKTW7snNX8n8fluAfIzK5nfuM1qbxH2weyqXqy5AWRHnfY6GtDDttQhg1kStM2WjLRx93PT+Zfd3nLuzLn3CwQlEFp3CbnRZRbByCTfzF5NfEeAT+p0D3kAsRLRXAoPqL/Y0/DIjOsWluSK304LxQYvTDFpJR6Jne706MslBdYiHXTzopA44kGDYpbXYJ9ZrRN4oXKATCB2xB/UKMkkdPkLyUagXEqk+Sv/zABxD8ueZqCwjurR0HKPboEwJCc7fPUWc0hrXk+wFBhzQA8goyjR/BxPrNuiZQtKXL2XIUNyhVsLhfgp+vfRt2E2MfVUXRluTiVhe3dq6N35CAR8uMKnsud44pg2Z4lIZsj4wjQcEbwWeGl9yPIOT86avqQuhCegz4ZsAlajAUMGuHvA0QTO3FKxMxlTh6Mu6FrYVPKUDsXhZVdFh4zabAwfx3a3nr/YvC5atjRxoSx8kvNV89nWFmnq2965Ggc7xtkaYQB044X1N3e/JrlQ+8=
+  on:
+    tags: true
+    repo: heysailor/redux-worker-queue
