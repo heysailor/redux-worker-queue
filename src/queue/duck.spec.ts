@@ -7,10 +7,6 @@ import { Queue } from './types';
 import * as queueDuck from './duck';
 import * as rootDuck from '../duck';
 
-// Prevents weird jest-only, only-some files error: No reducer provided for key "queue"
-// https://stackoverflow.com/a/47311830/2779264
-// jest.mock('../main'); // ie the redux store
-
 const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
   new Promise((resolve, reject) => resolve({ ok: true, item }));
 

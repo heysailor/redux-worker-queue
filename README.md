@@ -8,7 +8,13 @@ Can be used as a standalone module without having to touch redux, alternatively 
 
 ### 1. Initialization
 
-Let's save our dog, Buster. Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type to handle. The type includes handlers which return a special object.
+Let's save our dog, Buster. Grab the module from npm with `yarn` or `npm`:
+
+    yarn add redux-worker-queue
+
+    npm install --save redux-worker-queue
+
+Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type to handle. The type includes handlers which return a special object.
 
     import { WorkerQueue } from 'redux-worker-queue';
 
@@ -109,10 +115,12 @@ Import the queue middleware, and add the queue reducers:
       ]
     });
 
-    // Create your store with workerQueue middleware applied
+    // Create your store with a workerQueue key and workerQueue middleware applied
     let store = createStore(
-      myAwesomeReducer,
-      workerQueue: workerQueue.reducer,
+      {
+        myState: myAwesomeReducer,
+        workerQueue: workerQueue.reducer
+      },
       applyMiddleware(workerQueue.middleware)
     );
 
@@ -156,11 +164,13 @@ If you want to use a custom root key, specify it with the `reduxRootSelector` se
 
     // Create your store the custom queue key
     let store = createStore(
-      myAwesomeReducer,
-      applyMiddleware(workerQueueMiddleware)
+      {
+        myState: myAwesomeReducer,
 
-      // Same key as specified in reduxRootSelector
-      myAwesomeQueue: workerQueue.reducer,
+        // Same key as specified in reduxRootSelector
+        myAwesomeQueue: workerQueue.reducer,
+      },
+      applyMiddleware(workerQueue.middleware)
     );
 
 ## API
