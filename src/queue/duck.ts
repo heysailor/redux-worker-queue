@@ -1,9 +1,10 @@
+import { find } from 'lodash';
 import { QueueItem } from './item';
 import { Queue } from './types';
 import { Action, Store } from '../types';
 import { orderedItems, uniqueItems, rejectedItems } from '../util';
 import { ActionTypes } from '../duck';
-import WorkerQueue from '../WorkerQueue';
+import WorkerQueue, { INSTANCE } from '../WorkerQueue';
 import { rootSelector } from '../store';
 
 export enum QueueActionTypes {
@@ -57,3 +58,8 @@ export default function queueReducer(
 
 export const queueSelector = (state: any, workerQueueInstance: WorkerQueue) =>
   rootSelector(state, workerQueueInstance).queue;
+
+export const queueItemByClientMutationIdSelector = (
+  state: any,
+  clientMutationId: ClientMutationId
+) => find(queueSelector(state, INSTANCE), { clientMutationId });

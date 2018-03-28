@@ -6,7 +6,8 @@ import {
   isString,
   isFunction,
 } from 'lodash';
-import { Queue } from './queue';
+import shortid from 'shortid';
+import { Queue, QueueItem } from './queue';
 import { store, initStore } from './store';
 import { middleware } from './middleware';
 
@@ -23,6 +24,7 @@ import * as queueDuck from './queue/duck';
 import * as flushDuck from './flush/duck';
 import * as rootDuck from './duck';
 import * as flagDuck from './flag/duck';
+import { nextTick } from './util';
 
 export let INSTANCE: WorkerQueue;
 const MAX_WORKERS = 999;
@@ -72,11 +74,8 @@ class WorkerQueue {
     // Bit clunky, as all values may be undefined.
     this.settings = {
       order: {
-        by: opts && opts.order && opts.order.by ? opts.order.by : ['createdAt'],
-        direction:
-          opts && opts.order && opts.order.direction
-            ? opts.order.direction
-            : 'asc',
+        by: ['createdAt'],
+        direction: 'asc',
       },
       workers: opts && opts.workers ? opts.workers : 2,
     };
@@ -130,8 +129,21 @@ class WorkerQueue {
     }
     this.settings.workers = count;
   }
-  public addOrUpdateQueueItem(item: Queue.Item | Queue.NewItemInput) {
-    store.dispatch(this.actions.addOrUpdateItem(item));
+  public addOrUpdateQueueItem(
+    item: Queue.Item | Queue.NewItemInput
+  ): ClientMutationId {
+    const clientMutationId = item.clientMutationId || shortid.generate();
+    store.dispatch(this.actions.addOrUpdateItem({ clientMutationId, ...item }));
+    return clientMutationId;
+  }
+  public async getItem(
+    clientMutationId: ClientMutationId
+  ): Promise<Queue.Item | undefined> {
+    await nextTick();
+    return queueDuck.queueItemByClientMutationIdSelector(
+      store.getState(),
+      clientMutationId
+    );
   }
   public removeItem(clientMutationId: ClientMutationId) {
     store.dispatch(this.actions.removeItem(clientMutationId));

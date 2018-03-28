@@ -43,10 +43,9 @@ export type RegisterQueueItemTypeInput = {
 export type WorkerQueueSettings = {
   order: {
     by: WorkerQueueOrderBy;
-    direction: WorkerQueueOrderDirection;
+    direction: 'asc' | 'desc';
   };
   workers: number;
   reduxRootSelector?: (externalState: object) => Store.All;
 };
 export type WorkerQueueOrderBy = ('createdAt' | 'clientMutationId')[];
-export type WorkerQueueOrderDirection = 'asc' | 'desc';

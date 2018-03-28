@@ -3,6 +3,7 @@ import { Queue } from './queue';
 import { addOrUpdateItem } from './queue/duck';
 import { HandlerPromiseResponse } from './types';
 import 'jest';
+import { nextTick } from './util';
 
 const initialWorkerCount = 2;
 const handler = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
@@ -87,6 +88,22 @@ describe('WorkerQueue', () => {
         expect(handlers.length).toEqual(1);
       });
     });
+    describe('getItem(clientMutationId)', () => {
+      test('it gets a queueItem by clientMutationId', async () => {
+        const findThisOne: Queue.NewItemInput = {
+          clientMutationId: 'ME123',
+          type: 'SNOT',
+          payload: {
+            consistency: 'stringy',
+          },
+        };
+
+        newQueue.addOrUpdateQueueItem(findThisOne);
+        await nextTick();
+        const item = await newQueue.getItem(findThisOne.clientMutationId);
+        expect(item).toMatchObject(findThisOne);
+      });
+    });
   });
   describe('properties', () => {
     describe('action creator linking', () => {
@@ -157,7 +174,7 @@ describe('WorkerQueue', () => {
         expect(newQueue.order).toBeDefined();
       });
 
-      test('returns {by: ["createdAt"], direction: "asc"} when queue instantiated without a order option', () => {
+      test('returns {by: ["createdAt"], direction: "asc"} when queue instantiated', () => {
         expect(newQueue.order).toMatchObject({
           by: ['createdAt'],
           direction: 'asc',
