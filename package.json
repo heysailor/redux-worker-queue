@@ -1,6 +1,6 @@
 {
   "name": "redux-worker-queue",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Redux powered queue for the processing of serializable objects through sequential custom handlers, by parallel workers, with error and endless loop protection. Aimed at complex deferred offline persistence handling.",
   "main": "index.js",
   "scripts": {
