@@ -3,6 +3,7 @@
 /node_modules
 .coveralls.yml
 .travis.yml
+coveralls.sh
 TODO
 tsconfig.json
 tslint.json
