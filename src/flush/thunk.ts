@@ -23,7 +23,6 @@ export const flush = function() {
     dispatch: Dispatch<Store.All>,
     getState: Function
   ) {
-    console.log('FLUSHING TRIGGERED', flushing, shortid.generate());
     // Only one flush at a time.
     if (flushing) {
       return;
@@ -34,19 +33,11 @@ export const flush = function() {
     const pullChain = async function(): Promise<boolean> {
       const flushableItems = await getFlushableItems();
 
-      console.log(
-        `PULL CHAIN: These items are ready to go: ${flushableItems.map(
-          item => `${item.clientMutationId}`
-        )}`
-      );
-
       if (!flushableItems.length) return true;
 
       const openWorkerSpots = INSTANCE.workers - activeWorkers.length;
 
       if (!openWorkerSpots) return true;
-
-      console.log(`PULL CHAIN: We can launch ${openWorkerSpots} workers`);
 
       const next = flushableItems.slice(0, openWorkerSpots);
 
@@ -64,16 +55,23 @@ export const flush = function() {
     async function flush(item: Queue.Item): Promise<boolean> {
       const flushId = shortid.generate();
       activeWorkers.push([flushId, item.clientMutationId]);
-      console.log(
-        `PULL CHAIN|FLUSH:${flushId} fired at ${new Date().toJSON()}`
-      );
-      console.log(activeWorkers);
+      console && console.log
+        ? console.log(
+            `${flushId}:${
+              item.createdAt
+            }|flushWorker fired at ${new Date().toJSON()}`
+          )
+        : null;
 
       const result = await flaggedWorker(item, flushId);
 
-      console.log(
-        `PULL CHAIN|FLUSH:${flushId} finished at ${new Date().toJSON()}`
-      );
+      console && console.log
+        ? console.log(
+            `${flushId}:${
+              item.createdAt
+            }|flushWorker finished at ${new Date().toJSON()}`
+          )
+        : null;
       activeWorkers = remove(activeWorkers, reg => reg[0] === flushId);
 
       return result;
@@ -84,33 +82,24 @@ export const flush = function() {
       // Those not flagged as HALTED|WORKING, and not assigned a flush worker
       await nextTick();
       const readyInState = flushDuck.flushableItemsSelector(state, INSTANCE);
-      console.log(
-        'Ready in state',
-        readyInState.map(ready => ready.clientMutationId)
-      );
-      console.log('activeWorkers', activeWorkers);
 
       const assignedClientMutationIds = activeWorkers.map(reg => reg[1]);
-      console.log('assignedClientMutationIds', assignedClientMutationIds);
       const filtered = filter(
         readyInState,
         queueItem =>
           assignedClientMutationIds.indexOf(queueItem.clientMutationId) < 0
       );
-      console.log('filtered', filtered.map(ready => ready.clientMutationId));
       return filtered;
     }
 
     function clean() {
       dispatch(flagDuck.clean());
-      // await nextTick();
     }
 
     async function flagAs(
       queueItem: Queue.Item,
       flagInput: Flag.NewItemInput | Flag.Item
     ): Promise<Flag.Item | undefined> {
-      console.log('FLAGGING AS', queueItem.clientMutationId, flagInput.status);
       dispatch(flagDuck.addOrUpdateFlag(queueItem, flagInput));
       await nextTick();
       // get flag
@@ -146,24 +135,8 @@ export const flush = function() {
       queueItem: Queue.Item,
       flushId: string
     ): Promise<boolean> {
-      // console.log(
-      //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: triggered for queueItem`,
-      //   queueItem
-      // );
-
-      // console.log(
-      //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: adding WORKING flag for CMID ${
-      //     queueItem.clientMutationId
-      //   }`
-      // );
-
       // We need its handlerIndex.
       const preWorkFlag = await getFlag(queueItem);
-      console.log(
-        'Flag for item:',
-        queueItem.clientMutationId,
-        preWorkFlag ? preWorkFlag.status : null
-      );
 
       // Another worker may flag as WORKING|LOCKED|HALTED while this flush was organised. Defer to the prior worker.
       if (preWorkFlag && preWorkFlag.status !== 'OK') {
@@ -176,12 +149,6 @@ export const flush = function() {
         status: 'WORKING',
       });
 
-      // console.log(
-      //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: flag for CMID ${
-      //     queueItem.clientMutationId
-      //   } is`,
-      //   flag
-      // );
       // This really shouldn't happen. Safely log, and exit.
       if (!flag) {
         if (console && console.error) {
@@ -195,36 +162,18 @@ export const flush = function() {
       }
       // Is there another handler for this item, or is it done?
       if (!INSTANCE.getHandlersForType(queueItem.type)[flag.handlerIndex]) {
-        // console.log(
-        //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: goodbye pork pie, CMID ${
-        //     queueItem.clientMutationId
-        //   }`
-        // );
         await removeQueueItem(queueItem);
-        console.log(
-          `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: doneskis on ${
-            queueItem.clientMutationId
-          }`,
-          queueItem.payload.handledBy
-        );
         return true;
       }
-      // console.log(
-      //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: spawing new FlushWorker`
-      // );
+
       const result = await new FlushWorker(queueItem, flag).process();
-      // console.log(
-      //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker|FlushWorker: result`,
-      //   result
-      // );
+
       // Making flag directly really just to obtain the new hash value.
       const testFlag: Flag.Item = new FlagItem(result.item, {
         status: 'WORKING',
       });
       const itemChanged = testFlag.hash !== flag.hash;
-      // console.log(
-      //   `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: itemChanged ${itemChanged}`
-      // );
+
       let newFlag;
       if (!result.ok && itemChanged) {
         // OK: false, item changed: The handler needs to halt the item so more work is done
@@ -241,14 +190,17 @@ export const flush = function() {
         });
       }
 
-      // console.log(`PULL CHAIN|FLUSH:${flushId}|flaggedWorker: saving item`);
       await save(result.item);
 
-      console.log(
-        `PULL CHAIN|FLUSH:${flushId}|flaggedWorker: Done, outcome flag is`,
-        newFlag,
-        result.item.payload.handledBy
-      );
+      console && console.log
+        ? console.log(
+            `[${flushId}:${
+              result.item.clientMutationId
+            }]flaggedWorker: Done, outcome flag is ${
+              newFlag ? newFlag.status : null
+            }`
+          )
+        : null;
       return true;
     }
   };

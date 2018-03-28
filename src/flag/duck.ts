@@ -63,11 +63,11 @@ export const clean = function() {
   ) {
     let state = getState();
 
-    // Remove all flags which reference items no longer in the queue.
+    // Get flags which reference queue items which no longer exist.
     const irrelevant = differenceBy(
       flagsSelector(state, INSTANCE),
       queueSelector(state, INSTANCE),
-      item => item.clientMutationId
+      'clientMutationId'
     );
 
     if (irrelevant.length) {

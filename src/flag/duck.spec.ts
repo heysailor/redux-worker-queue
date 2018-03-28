@@ -206,7 +206,7 @@ describe('FLAG duck', () => {
         expect(firstState.length).toEqual(1);
         const __clearQueue__Action = __clearQueue__();
         const testState = flag(firstState, __clearQueue__Action);
-        expect(testState.length).toEqual(0);
+        expect(testState).toMatchObject([]);
       });
     });
   });
