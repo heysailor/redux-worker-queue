@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { remove, filter } from 'lodash';
+import { filter, find } from 'lodash';
 import shortid from 'shortid';
 import { Queue } from '../queue';
 import { FlagItem, Flag } from '../flag';
@@ -31,65 +31,100 @@ export const flush = function() {
     await clean();
 
     const pullChain = async function(): Promise<boolean> {
+      // Get the items in the queue that don't have bad flags
       const flushableItems = await getFlushableItems();
-
       if (!flushableItems.length) return true;
 
-      const openWorkerSpots = INSTANCE.workers - activeWorkers.length;
+      // No async stuff between now and assigning a flushable to a worker
+      // - otherwise the recursion means double assignment. That's why
+      // the [synchronous] check to see if there's actually a spot free
+      // happens after the more expensive item check.
 
+      const openWorkerSpots = INSTANCE.workers - activeWorkers.length;
       if (!openWorkerSpots) return true;
 
-      const next = flushableItems.slice(0, openWorkerSpots);
+      const assignedClientMutationIds = activeWorkers.map(reg => reg[1]);
+      // console.log('activeWorkers', activeWorkers);
 
-      await Promise.race(
+      const unAssignedItems = filter(
+        flushableItems,
+        item => assignedClientMutationIds.indexOf(item.clientMutationId) < 0
+      );
+      // console.log('unAssignedItems', unAssignedItems);
+
+      const next = unAssignedItems.slice(0, openWorkerSpots);
+      // console.log('next items', next);
+
+      // Assign ASAP before firing promise, otherwise
+      // recursion means another worker sneaks in. Tricky!
+      next.map(item => {
+        const workerId = shortid.generate();
+        assignWorker(workerId, item.clientMutationId);
+      });
+
+      // Fire off a promise recursion chain
+      await Promise.all(
         next.map(async item => {
           await flush(item);
           // Recurse. Wheeee!
+          return await pullChain();
         })
       );
-      return pullChain();
+      return true;
     };
 
     await pullChain();
 
     async function flush(item: Queue.Item): Promise<boolean> {
-      const flushId = shortid.generate();
-      activeWorkers.push([flushId, item.clientMutationId]);
       // console && console.log
       //   ? console.log(
       //       `${flushId}:${
-      //         item.createdAt
+      //         item.clientMutationId
       //       }|flushWorker fired at ${new Date().toJSON()}`
       //     )
       //   : null;
 
-      const result = await flaggedWorker(item, flushId);
+      // get workerId
+      const reg = find(
+        activeWorkers,
+        (reg: string[]) => reg[1] === item.clientMutationId
+      );
+
+      const result = await flaggedWorker(item, reg ? reg[0] : 'ANON');
+
+      // Remove worker registration
+      unassignWorker(item.clientMutationId);
 
       // console && console.log
       //   ? console.log(
-      //       `${flushId}:${
-      //         item.createdAt
+      //       `${reg ? reg[0] : 'ANON'}:${
+      //         item.clientMutationId
       //       }|flushWorker finished at ${new Date().toJSON()}`
       //     )
       //   : null;
-      activeWorkers = remove(activeWorkers, reg => reg[0] === flushId);
 
       return result;
     }
 
+    function assignWorker(
+      workerId: string,
+      clientMutationId: ClientMutationId
+    ) {
+      activeWorkers.push([workerId, clientMutationId]);
+    }
+
+    function unassignWorker(clientMutationId: ClientMutationId) {
+      // console.log('Unassigning', clientMutationId);
+      // console.log('activeWorkers pre', activeWorkers);
+      activeWorkers = filter(activeWorkers, reg => reg[1] !== clientMutationId);
+      // console.log('activeWorkers post', activeWorkers);
+    }
+
     async function getFlushableItems(): Promise<Queue.Item[]> {
-      const state = getState();
       // Those not flagged as HALTED|WORKING, and not assigned a flush worker
       await nextTick();
-      const readyInState = flushDuck.flushableItemsSelector(state, INSTANCE);
-
-      const assignedClientMutationIds = activeWorkers.map(reg => reg[1]);
-      const filtered = filter(
-        readyInState,
-        queueItem =>
-          assignedClientMutationIds.indexOf(queueItem.clientMutationId) < 0
-      );
-      return filtered;
+      const state = getState();
+      return flushDuck.flushableItemsSelector(state, INSTANCE);
     }
 
     function clean() {
@@ -148,6 +183,8 @@ export const flush = function() {
         ...preWorkFlag,
         status: 'WORKING',
       });
+      //
+      // console.log('flaggedWorker has set flag:', flag);
 
       // This really shouldn't happen. Safely log, and exit.
       if (!flag) {
@@ -174,6 +211,8 @@ export const flush = function() {
       });
       const itemChanged = testFlag.hash !== flag.hash;
 
+      await save(result.item);
+
       let newFlag;
       if (!result.ok && itemChanged) {
         // OK: false, item changed: The handler needs to halt the item so more work is done
@@ -190,7 +229,7 @@ export const flush = function() {
         });
       }
 
-      await save(result.item);
+      // console.log('flaggedWorker has set new flag:', newFlag);
 
       // console && console.log
       //   ? console.log(

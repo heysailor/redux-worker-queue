@@ -1,5 +1,4 @@
 import 'jest';
-
 import { QueueItem, Queue } from '../queue';
 import { addOrUpdateItem, removeItem } from '../queue/duck';
 import flag, {
