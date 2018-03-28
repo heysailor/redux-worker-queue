@@ -17,11 +17,21 @@ import * as flushDuck from './duck';
 
 // These tests use an "external" redux store to help in testing.
 
-let handlersCalledFor: ClientMutationId[] = [];
+let itemsProcessedInOrder: ClientMutationId[] = [];
+const itemHandlerOrder: { [key: string]: string[] } = {};
+
+function onHandlerCalled(item: Queue.Item, handlerName: string) {
+  itemsProcessedInOrder = [...itemsProcessedInOrder, item.clientMutationId];
+  itemHandlerOrder[item.clientMutationId] = itemHandlerOrder[
+    item.clientMutationId
+  ]
+    ? [...itemHandlerOrder[item.clientMutationId], handlerName]
+    : [handlerName];
+}
 
 const handler_ONE = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
   new Promise((resolve, reject) => {
-    handlersCalledFor.push(item.clientMutationId);
+    onHandlerCalled(item, 'ONE');
     const newItem: Queue.Item = {
       ...item,
       payload: {
@@ -48,7 +58,7 @@ const handler_ONE = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
 
 const handler_TWO = (item: Queue.Item): Promise<HandlerPromiseResponse> =>
   new Promise((resolve, reject) => {
-    handlersCalledFor.push(item.clientMutationId);
+    onHandlerCalled(item, 'TWO');
     const newItem: Queue.Item = {
       ...item,
       payload: {
@@ -108,7 +118,7 @@ const queueItem_HEY_SAVE_ME_TOO = {
   errors: [],
   createdAt: new Date().toJSON(),
 };
-[1, 2, 1, 3, 4, 3, 4, 5, 5, 5, 5];
+
 const testState: Store.All = {
   queue: [
     queueItem_SAVE_ME, // handler x2
@@ -151,7 +161,7 @@ describe('FLUSH thunk action creators', () => {
         expect(flagDuck.clean()).toBeDefined();
       });
 
-      test('it flushes the queue with the max allowed workers', done => {
+      test('it flushes the queue items with handlers in order, with the max allowed workers', done => {
         testStore.dispatch(flushDuck.flush());
 
         function callback() {
@@ -189,7 +199,16 @@ describe('FLUSH thunk action creators', () => {
           ).toMatchObject({
             status: 'LOCKED',
           });
-          expect(handlersCalledFor.length).toBe(8);
+          // order very difficult to test, as workers on different threads[ish].
+          expect(itemsProcessedInOrder.length).toBe(8);
+
+          expect(itemHandlerOrder).toMatchObject({
+            HALT_ME: ['ONE'],
+            HEY_SAVE_ME_TOO: ['ONE', 'TWO'],
+            LOCK_ME: ['ONE'],
+            SAVE_ME: ['ONE', 'TWO'],
+            SAVE_ME_TOO: ['ONE', 'TWO'],
+          });
           done();
         }
 
@@ -197,11 +216,6 @@ describe('FLUSH thunk action creators', () => {
           callback();
         }, 2000);
       });
-      // Spawns up to max workers
-      // flags as working first
-      // flags as OK after handler returns fine
-      // calls each handler in succession
-      // processes all flushable items.
     });
   });
 });

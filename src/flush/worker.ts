@@ -18,10 +18,7 @@ export class FlushWorker {
   }
 
   public async process(): Flush.WorkerStartResponse {
-    // console.log(`FlushWorker.process(): called for item`, this.item);
-
     if (!this.handlers || !this.handlers.length) {
-      // reject(
       throw new Error(
         `Must register at least one handler for ${
           this.item.type
@@ -39,14 +36,14 @@ export class FlushWorker {
     try {
       return await handler(this.item);
     } catch (e) {
+      console.error('wJBDKSX,Z');
       if (console && console.error) {
         console.error(
           `Your handler for queued item with clientMutationId ${
             this.item.clientMutationId
           } of type ${
             this.item.type
-          } returned an error, which is bad. The error was`,
-          e
+          } returned an error, which is bad. Handlers should _always_ return { ok: boolean, item: QueueItem }. Place any errors in QueueItem.errors. The error was '${e}'`
         );
       }
       // Resolving this way without any item change will trigger lockout.
