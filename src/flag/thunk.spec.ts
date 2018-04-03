@@ -88,8 +88,8 @@ describe('Flag thunk action creators', () => {
     expect(storeState).toBeDefined();
     expect(storeState.workerQueue.queue).toBeDefined();
     expect(storeState.workerQueue.flags).toBeDefined();
-    expect(storeState.workerQueue.queue.length).toBeTruthy();
-    expect(storeState.workerQueue.flags.length).toBeTruthy();
+    expect(storeState.workerQueue.queue.length).toBe(4);
+    expect(storeState.workerQueue.flags.length).toBe(4);
   });
 
   describe('clean()', () => {
@@ -149,48 +149,70 @@ describe('Flag thunk action creators', () => {
       expect(result).toEqual(true);
     });
 
-    test('it changes LOCKED flags for queueItems which have subsequently changed to OK', async () => {
-      await cleanPromiseCreator(testStore.dispatch, testStore.getState);
-      let firstState = testStore.getState();
-
-      // confirm LOCKED flag is present and correct
-      const lockFlag = find(firstState.workerQueue.flags, { status: 'LOCKED' });
-      expect(lockFlag.clientMutationId).toEqual(
-        queueItemLOCKED.clientMutationId
+    test('it changes HALTED flags, for queueItems which have changed, to OK', async () => {
+      const haltCleanTestStore = createStore(
+        combineReducers({ workerQueue: rootReducer }),
+        { workerQueue: testState },
+        applyMiddleware(workerQueue.middleware)
       );
-      expect(lockFlag.status).toEqual('LOCKED');
-      expect(lockFlag.hash).toEqual(lockFlag.lastHash);
+      const initialHaltTestState = haltCleanTestStore.getState();
+
+      // confirm HALTED flag is present and correct
+      const haltedFlag = find(initialHaltTestState.workerQueue.flags, {
+        status: 'HALTED',
+      });
+      expect(haltedFlag.clientMutationId).toEqual(
+        queueItemHALTED.clientMutationId
+      );
+      expect(haltedFlag.status).toEqual('HALTED');
+      expect(haltedFlag.hash).toBeTruthy();
+      expect(haltedFlag.hash).not.toEqual(haltedFlag.lastHash);
+
+      // Great, try a clean
+      await haltCleanTestStore.dispatch(flagDuck.clean());
+      const cleanedState = haltCleanTestStore.getState();
+
+      // Halt should remain
+      const haltedFlagRemaining = find(cleanedState.workerQueue.flags, {
+        status: 'HALTED',
+      });
+      expect(haltedFlagRemaining).toBeTruthy();
+      expect(haltedFlagRemaining.clientMutationId).toEqual(
+        haltedFlag.clientMutationId
+      );
 
       // change queueItem
-      const stateQueueItemLocked = find(
-        firstState.workerQueue.queue,
-        item => item.clientMutationId === lockFlag.clientMutationId
+      const haltedQueueItemInState = find(
+        cleanedState.workerQueue.queue,
+        item => item.clientMutationId === haltedFlag.clientMutationId
       );
       const newPayload = { new: 'data' };
-      testStore.dispatch(
+      haltCleanTestStore.dispatch(
         queueDuck.addOrUpdateItem({
-          ...stateQueueItemLocked,
+          ...haltedQueueItemInState,
           payload: newPayload,
         })
       );
 
       // Check change has occured
-      const secondState = testStore.getState();
-      expect(
-        find(
-          secondState.workerQueue.queue,
-          item =>
-            item.clientMutationId === stateQueueItemLocked.clientMutationId
-        ).payload
-      ).toMatchObject(newPayload);
+      const changedQueueItemState = haltCleanTestStore.getState();
+      const changedQueueItemInState = find(
+        changedQueueItemState.workerQueue.queue,
+        item =>
+          item.clientMutationId === haltedQueueItemInState.clientMutationId
+      );
+      expect(changedQueueItemInState.payload).toMatchObject(newPayload);
+      expect(haltedQueueItemInState.payload).not.toMatchObject(
+        changedQueueItemInState.payload
+      );
 
-      // Now clean, and check flag has been removed.
-      testStore.dispatch(flagDuck.clean());
-      const thirdState = testStore.getState();
+      // Now clean, and check HALTED flag has been changed to OK.
+      haltCleanTestStore.dispatch(flagDuck.clean());
+      const changedQueueItemAndCleanedState = haltCleanTestStore.getState();
 
       const postItemChangeFlag = find(
-        thirdState.workerQueue.flags,
-        flag => flag.clientMutationId === lockFlag.clientMutationId
+        changedQueueItemAndCleanedState.workerQueue.flags,
+        flag => flag.clientMutationId === haltedFlag.clientMutationId
       );
       expect(postItemChangeFlag).toBeDefined();
       expect(postItemChangeFlag.status).toEqual('OK');

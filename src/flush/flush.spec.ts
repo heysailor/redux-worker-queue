@@ -156,11 +156,6 @@ describe('FLUSH thunk action creators', () => {
       expect(flushDuck.flush()).toBeDefined();
     });
 
-    describe('clean()', () => {
-      test('exists', () => {
-        expect(flagDuck.clean()).toBeDefined();
-      });
-
       test('it flushes the queue items with handlers in order, with the max allowed workers', done => {
         testStore.dispatch(flushDuck.flush());
 

@@ -83,20 +83,19 @@ export const clean = function() {
       state = getState();
     }
 
-    // Check that the locked out flags should remain that way.
-    const lockedFlags = lockedFlagsSelector(state, INSTANCE);
+    // Check that the HALTED flags should remain that way.
+    const haltedFlags = haltedFlagsSelector(state, INSTANCE);
     const queue = queueSelector(state, INSTANCE);
 
-    if (lockedFlags.length) {
+    if (haltedFlags.length) {
       await Promise.all(
-        lockedFlags.map(flag => {
+        haltedFlags.map(flag => {
           const queueItem = find(queue, {
             clientMutationId: flag.clientMutationId,
           });
           // Shouldn't happen, but sanity check
           if (!queueItem) return;
           const testFlag = new FlagItem(queueItem, flag);
-
           if (testFlag.hash !== flag.hash) {
             // queueItem has changed, therefore out of purgatory
             dispatch(addOrUpdateFlag(queueItem, { status: 'OK' }));
