@@ -62,6 +62,7 @@ export const clean = function() {
     getState: Function
   ) {
     let state = getState();
+    const queue = queueSelector(state, INSTANCE);
 
     // Get flags which reference queue items which no longer exist.
     const irrelevant = differenceBy(
@@ -85,25 +86,29 @@ export const clean = function() {
 
     // Check that the HALTED flags should remain that way.
     const haltedFlags = haltedFlagsSelector(state, INSTANCE);
-    const queue = queueSelector(state, INSTANCE);
 
     if (haltedFlags.length) {
       await Promise.all(
         haltedFlags.map(flag => {
-          const queueItem = find(queue, {
-            clientMutationId: flag.clientMutationId,
-          });
-          // Shouldn't happen, but sanity check
-          if (!queueItem) return;
-          const testFlag = new FlagItem(queueItem, flag);
-          if (testFlag.hash !== flag.hash) {
-            // queueItem has changed, therefore out of purgatory
-            dispatch(addOrUpdateFlag(queueItem, { status: 'OK' }));
-            return nextTick();
-          } else {
-            // Still in the bad books, don't change status
-            return;
-          }
+          return updateHaltedFlagAsync(
+            flag,
+            find(queue, { clientMutationId: flag.clientMutationId }),
+            dispatch
+          );
+        })
+      );
+    }
+
+    // Release any expired locks
+    const lockedFlags = lockedFlagsSelector(state, INSTANCE);
+    if (lockedFlags.length) {
+      await Promise.all(
+        lockedFlags.map(flag => {
+          return updateLockedFlagAsync(
+            flag,
+            find(queue, { clientMutationId: flag.clientMutationId }),
+            dispatch
+          );
         })
       );
     }
@@ -164,3 +169,53 @@ export const haltedFlagsSelector = (
 
 export const okFlagsSelector = (state: any, workerQueueInstance: WorkerQueue) =>
   filter(flagsSelector(state, workerQueueInstance), { status: 'OK' });
+
+// Utils
+async function updateHaltedFlagAsync(
+  flag: Flag.Item,
+  queueItem: Queue.Item | undefined,
+  dispatch: Dispatch<Store.All>
+) {
+  // Shouldn't happen, but sanity check
+  if (!queueItem) return;
+  if (flag.status !== 'HALTED') return;
+
+  const testFlag = new FlagItem(queueItem, flag);
+
+  if (testFlag.hash === flag.hash) return;
+
+  dispatch(addOrUpdateFlag(queueItem, { ...flag, status: 'OK' }));
+  return nextTick();
+}
+
+async function updateLockedFlagAsync(
+  flag: Flag.Item,
+  queueItem: Queue.Item | undefined,
+  dispatch: Dispatch<Store.All>
+) {
+  if (!queueItem) return;
+  if (flag.status !== 'LOCKED') return;
+  if (!flag.updatedAt) return;
+  // console.log(
+  //   'Difference between updatedAt and now',
+  //   new Date().getTime() - new Date(flag.updatedAt).getTime()
+  // );
+  // console.log('Lockout period', INSTANCE.lockoutPeriod);
+  // console.log(
+  //   'Is less or equal to lockout?',
+  //   new Date().getTime() - new Date(flag.updatedAt).getTime() <=
+  //     INSTANCE.lockoutPeriod
+  // );
+  if (
+    new Date().getTime() - new Date(flag.updatedAt).getTime() <=
+    INSTANCE.lockoutPeriod
+  )
+    return;
+
+  // console.log('Releasing lock for CMID', flag.clientMutationId);
+
+  // Lock out has expired, release
+  dispatch(addOrUpdateFlag(queueItem, { ...flag, status: 'OK' }));
+
+  return nextTick();
+}

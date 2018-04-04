@@ -66,6 +66,23 @@ describe('WorkerQueue', () => {
     expect(newQueue.workers).toEqual(5);
   });
 
+  test('lockoutPeriod property exists', () => {
+    expect(newQueue.lockoutPeriod).toBeTruthy();
+  });
+
+  test('lockoutPeriod property defaults to 3000 ms', () => {
+    expect(newQueue.lockoutPeriod).toEqual(3000);
+  });
+
+  test('lockoutPeriod property can be changed only to another positive integer or zero', () => {
+    newQueue.lockoutPeriod = -15;
+    expect(newQueue.lockoutPeriod).toEqual(3000);
+    newQueue.lockoutPeriod = 0.2;
+    expect(newQueue.lockoutPeriod).toEqual(3000);
+    newQueue.lockoutPeriod = 0;
+    expect(newQueue.lockoutPeriod).toEqual(0);
+  });
+
   describe('methods', () => {
     describe('getHandlersForType()', () => {
       test('returns a handlers array when called with a corresponding itemType string', () => {

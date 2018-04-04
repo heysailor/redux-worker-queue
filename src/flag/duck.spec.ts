@@ -181,18 +181,23 @@ describe('FLAG duck', () => {
       expect(flag).toBeDefined();
     });
     describe('when called with action made with...', () => {
-      test(' addOrUpdateItem() --> it adds or updates a flag item', () => {
+      test(' addOrUpdateFlag() --> it adds or updates a flag item', () => {
         const addFirst = addOrUpdateFlag(queueItem, {
-          status: 'WORKING',
+          status: 'OK',
         });
         const firstState = flag(undefined, addFirst);
+        expect(firstState[0].status).toBe('OK');
+        expect(firstState[0].handlerIndex).toBe(0);
         const addSecond = addOrUpdateFlag(queueItem, {
           status: 'WORKING',
           handlerIndex: 2,
         });
-        // Update
+        // Update state
         const secondState = flag(firstState, addSecond);
         expect(secondState.length).toEqual(1);
+        expect(secondState[0].status).toBe('WORKING');
+        expect(secondState[0].handlerIndex).toBe(2);
+
         const addThird = addOrUpdateFlag(
           { ...queueItem, clientMutationId: '25we' },
           {
@@ -200,7 +205,7 @@ describe('FLAG duck', () => {
             handlerIndex: 2,
           }
         );
-        // New queueItem
+        // New flag
         const thirdState = flag(secondState, addThird);
         expect(thirdState.length).toEqual(2);
       });
