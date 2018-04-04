@@ -7,7 +7,6 @@ import rootReducer from '../duck';
 import WorkerQueue from '../WorkerQueue';
 
 import { Queue } from '../queue';
-import { FlagItem } from '../flag';
 
 import { HandlerPromiseResponse } from '../types';
 import { Store } from '../types';

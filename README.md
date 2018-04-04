@@ -1,8 +1,18 @@
 # Redux Worker Queue [![Build Status](https://travis-ci.org/heysailor/redux-worker-queue.svg?branch=master)](https://travis-ci.org/heysailor/redux-worker-queue) [![Coverage Status](https://coveralls.io/repos/github/heysailor/redux-worker-queue/badge.svg?branch=coordinator)](https://coveralls.io/github/heysailor/redux-worker-queue?branch=coordinator)
 
-Redux powered queue for the storage and deferred processing of objects of multiple named types by a specified number of parallel workers. Coordinates the sequential application of per-type custom handler functions. Suited to complex deferred offline persistence handling, eg with validation, saving and linking stages.
+#### TLDR;
+
+Handy if you want to stash data, then systematically process it later. If you hook it up with redux and save your state, you've got yourself an offline persistence queue.
+
+#### The details
+
+This module is an internally redux powered queue for the storage and deferred processing of objects of multiple named types by a specified number of parallel workers.
+
+It coordinates the on-demand sequential application of per-type custom handler functions to the stored objects.
 
 Can be used as a standalone module without having to touch redux, alternatively use middleware to join to an external redux store.
+
+Suited to complex deferred offline persistence handling, eg with validation, saving and linking stages.
 
 ## Quick start
 
@@ -14,7 +24,7 @@ Let's save our dog, Buster. Grab the module from npm with `yarn` or `npm`:
 
     npm install --save redux-worker-queue
 
-Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type to handle. The type includes handlers which return a special object.
+Import the `WorkerQueue` constructor, and initialize the queue with a `TypeRegistration`. We'll include a `type` of 'PET', and pet handlers which return promises.
 
     import WorkerQueue from 'redux-worker-queue';
 
@@ -32,7 +42,7 @@ Import the `WorkerQueue` constructor, and initialize the queue with a `PET` type
 
 ### 2. Add an item to the queue
 
-Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the `type` as 'PET', and including Buster's information as the `payload`.
+Call `addOrUpdateQueueItem()` with a `NewQueueItem` - specifying the `type` as 'PET', and including Buster's custom information as the `payload`.
 
     const myPet = {
       name: 'Buster',
@@ -45,7 +55,7 @@ Call `addOrUpdateItem()` with a `NewQueueItem` - specifying the `type` as 'PET',
       payload: myPet,
     });
 
-The Buster `QueueItem` is now stored in the queue.
+Buster's `QueueItem` is now stored in the queue.
 
 ### 3. Flush the queue at your leisure.
 
@@ -53,39 +63,56 @@ When you're ready, call `flush()`.
 
     myPetsQueue.flush();
 
-Buster will now be handed to `isMyPetValidAsync`...and if he's valid, to `saveMyPetAsync`...and if that's successful, removed off the queue. Voilà! You've saved him!
+Buster will now be handed to `isMyPetValidAsync`...and if he's valid, to `saveMyPetAsync`...and if that's successful, he's removed off the queue. Voilà! You've saved him!
 
 ## Handlers
 
 The handlers provided to the queue for each type are applied to each `QueueItem` of their specific type, in order of their registration. Each handler can block progression to the next.
 
-The handler functions must be _pure functions_ which take a QueueItem as their first argument, and return a promise. The promise must _always_ resolve as below:
+The handler functions must be _pure functions_ which take a `QueueItem` as their first argument, and return a promise. The promise must _always_ resolve as below:
 
     {
        ok: Boolean,
        item: QueueItem
     }
 
-There are three different pathways from the handler response: OK, halted, locked.
+There are three different outcomes from the handler response: OK, halted, locked.
 
-#### OK: Response `{ ok: true, item: possibly changed QueueItem }`
+#### Outcome: OK
+
+Triggered by handler resolving to:
+
+      `{ ok: true, item: possibly changed QueueItem }`
 
 If the `QueueItem` is now ready for the next handler, set `ok: true`. A queue item is only processed by the next handler once the preceding handler has resolved to `ok: true`.
 
 Once the last handler resolves in this way, the item is removed from the queue...Christmas!
 
-#### Halted: Response `{ ok: false, item: a changed QueueItem }`
+#### Outcome: Halted
 
-A halt stops the subsequent handlers being called until the `QueueItem` is updated and `flush()` called again. For example, a validation handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action. Update the item by passing the changed `QueueItem` to `addOrUpdateQueueItem()`.
+Triggered by handler resolving to:
 
-#### Locked: Response `{ ok: false, item: an unchanged QueueItem }`, or a rejected handler promise.
+      `{ ok: false, item: a changed QueueItem }`
+
+A halt stops the subsequent handlers being called until the `QueueItem` is updated and `flush()` called again.
+
+For example, a validation handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action, and return the updated `QueueItem` along with `ok: false`. The user action should trigger an update to the item by passing the changed `QueueItem` to `addOrUpdateQueueItem()`. The update to the `QueueItem` will release the halt.
+
+#### Outcome: Locked
+
+Triggered by a rejected handler promise, a handler throwing an error, or a handler resolving to:
+
+      `{ ok: false, item: an unchanged QueueItem }`
 
 A `QueueItem` will be _locked out_ of processing until it is changed if
 
 * `ok: false` is resolved from the handler promise and no change was made to the `QueueItem`, or
 * a handler promise is rejected
+* a handler throws an error
 
-_The handler promise should always resolve._ If the handler throws an error or rejects its promise, the `QueueItem` will be locked. The error message is logged to the console, if present, to help you.
+_The handler promise should always resolve._
+
+If a handler rejects or throws an error, the error is logged to the console if possible to help you.
 
 ## Workers
 
