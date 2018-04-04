@@ -47,5 +47,6 @@ export type WorkerQueueSettings = {
   };
   workers: number;
   reduxRootSelector?: (externalState: object) => Store.All;
+  lockoutPeriod?: number;
 };
 export type WorkerQueueOrderBy = ('createdAt' | 'clientMutationId')[];

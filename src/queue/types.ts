@@ -14,6 +14,7 @@ export namespace Queue {
     readonly errors: ItemErrors;
     readonly clientMutationId: ClientMutationId;
     readonly createdAt: string;
+    readonly updatedAt: string | undefined;
   };
 
   export type NewItemInput = {

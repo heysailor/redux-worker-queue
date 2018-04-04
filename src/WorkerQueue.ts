@@ -38,6 +38,7 @@ class WorkerQueue {
     return this.EXTERNAL_STORE ? state.workerQueue : state;
   };
   private _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
+  private _lockoutPeriodInMs: number = 3000;
   readonly actions = {
     addOrUpdateItem: queueDuck.addOrUpdateItem,
     addOrUpdateItemAndClean: rootDuck.addOrUpdateItemAndClean,
@@ -70,8 +71,10 @@ class WorkerQueue {
       if (opts.reduxRootSelector) {
         this._rootSelector = opts.reduxRootSelector;
       }
+      if (opts.lockoutPeriod) {
+        this._lockoutPeriodInMs = opts.lockoutPeriod;
+      }
     }
-
     // Bit clunky, as all values may be undefined.
     this.settings = {
       order: {
@@ -188,6 +191,17 @@ class WorkerQueue {
     `);
     }
     initStore();
+  }
+  public set lockoutPeriod(periodInIntegerMs: number) {
+    if (
+      periodInIntegerMs !== 0 &&
+      (!isInteger(periodInIntegerMs) || periodInIntegerMs < 0)
+    )
+      return;
+    this._lockoutPeriodInMs = periodInIntegerMs;
+  }
+  public get lockoutPeriod() {
+    return this._lockoutPeriodInMs;
   }
 }
 

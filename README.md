@@ -104,7 +104,7 @@ Triggered by a rejected handler promise, a handler throwing an error, or a handl
 
       `{ ok: false, item: an unchanged QueueItem }`
 
-A `QueueItem` will be _locked out_ of processing until it is changed if
+A `QueueItem` will be _locked out_ of processing temporarily if
 
 * `ok: false` is resolved from the handler promise and no change was made to the `QueueItem`, or
 * a handler promise is rejected
@@ -113,6 +113,8 @@ A `QueueItem` will be _locked out_ of processing until it is changed if
 _The handler promise should always resolve._
 
 If a handler rejects or throws an error, the error is logged to the console if possible to help you.
+
+Once the `lockoutPeriod` has elapsed (as specified on `WorkerQueue` initialisation or set dynamically), the `QueueItem` will be released for processing again.
 
 ## Workers
 
@@ -262,6 +264,10 @@ Returns the ordering settings of the queue.
 
 Set this to the number of workers required.
 
+#### `WorkerQueue.lockoutPeriod:Int, >= 0`
+
+Set this to the number of milliseconds for which a `QueueItem` should be locked out.
+
 ### Data types
 
 #### `type: TypeRegistration`
@@ -276,7 +282,9 @@ Set this to the number of workers required.
 #### `type: Settings`
 
     {
-      workers?: number
+      workers?: number,
+      reduxRootSelector?: globalState => WorkerQueueState,
+      lockoutPeriod?: Integer, >= 0, in milliseconds
     }
 
 #### `type: NewQueueItem`
