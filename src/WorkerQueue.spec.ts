@@ -119,10 +119,10 @@ describe('WorkerQueue', () => {
     });
 
     describe('direct item management:', () => {
-      test('addOrUpdateQueueItem() calls the addOrUpdateQueueItem action creator', () => {
+      test('addOrUpdateQueueItem() calls the addOrUpdateItemAndClean thunk action creator', () => {
         expect(newQueue.addOrUpdateQueueItem).toBeDefined();
 
-        const spy = jest.spyOn(newQueue.actions, 'addOrUpdateItem');
+        const spy = jest.spyOn(newQueue.actions, 'addOrUpdateItemAndClean');
         const queueItem: Queue.NewItemInput = {
           type: 'SNOT',
           payload: {

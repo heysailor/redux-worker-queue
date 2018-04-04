@@ -28,7 +28,7 @@ export const flush = function() {
       return;
     }
     flushing = true;
-    await clean();
+    dispatch(flagDuck.clean());
 
     const pullChain = async function(): Promise<boolean> {
       // Get the items in the queue that don't have bad flags
@@ -125,10 +125,6 @@ export const flush = function() {
       await nextTick();
       const state = getState();
       return flushDuck.flushableItemsSelector(state, INSTANCE);
-    }
-
-    function clean() {
-      dispatch(flagDuck.clean());
     }
 
     async function flagAs(

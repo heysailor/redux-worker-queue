@@ -7,7 +7,6 @@ import rootReducer from '../duck';
 import WorkerQueue from '../WorkerQueue';
 
 import { Queue } from '../queue';
-import { FlagItem } from '../flag';
 
 import { HandlerPromiseResponse } from '../types';
 import { Store } from '../types';
@@ -156,61 +155,60 @@ describe('FLUSH thunk action creators', () => {
       expect(flushDuck.flush()).toBeDefined();
     });
 
-      test('it flushes the queue items with handlers in order, with the max allowed workers', done => {
-        testStore.dispatch(flushDuck.flush());
+    test('it flushes the queue items with handlers in order, with the max allowed workers', done => {
+      testStore.dispatch(flushDuck.flush());
 
-        function callback() {
-          const flushedState = testStore.getState();
-          expect(flushedState.workerQueue.queue.length).toBe(2);
-          expect(
-            find(flushedState.workerQueue.queue, {
-              clientMutationId: queueItem_HALT_ME.clientMutationId,
-            })
-          ).toBeTruthy();
-          expect(
-            find(flushedState.workerQueue.queue, {
-              clientMutationId: queueItem_LOCK_ME.clientMutationId,
-            })
-          ).toBeTruthy();
-          expect(flushedState.workerQueue.flags.length).toBe(2);
-
-          const halted = find(flushedState.workerQueue.queue, {
+      function callback() {
+        const flushedState = testStore.getState();
+        expect(flushedState.workerQueue.queue.length).toBe(2);
+        expect(
+          find(flushedState.workerQueue.queue, {
             clientMutationId: queueItem_HALT_ME.clientMutationId,
-          });
-          expect(halted).toBeTruthy();
-          expect(halted.payload.deeply.nested).toBe('stuff');
-          expect(
-            find(flushedState.workerQueue.flags, {
-              clientMutationId: queueItem_HALT_ME.clientMutationId,
-            })
-          ).toMatchObject({
-            status: 'HALTED',
-          });
+          })
+        ).toBeTruthy();
+        expect(
+          find(flushedState.workerQueue.queue, {
+            clientMutationId: queueItem_LOCK_ME.clientMutationId,
+          })
+        ).toBeTruthy();
+        expect(flushedState.workerQueue.flags.length).toBe(2);
 
-          expect(
-            find(flushedState.workerQueue.flags, {
-              clientMutationId: queueItem_LOCK_ME.clientMutationId,
-            })
-          ).toMatchObject({
-            status: 'LOCKED',
-          });
-          // order very difficult to test, as workers on different threads[ish].
-          expect(itemsProcessedInOrder.length).toBe(8);
+        const halted = find(flushedState.workerQueue.queue, {
+          clientMutationId: queueItem_HALT_ME.clientMutationId,
+        });
+        expect(halted).toBeTruthy();
+        expect(halted.payload.deeply.nested).toBe('stuff');
+        expect(
+          find(flushedState.workerQueue.flags, {
+            clientMutationId: queueItem_HALT_ME.clientMutationId,
+          })
+        ).toMatchObject({
+          status: 'HALTED',
+        });
 
-          expect(itemHandlerOrder).toMatchObject({
-            HALT_ME: ['ONE'],
-            HEY_SAVE_ME_TOO: ['ONE', 'TWO'],
-            LOCK_ME: ['ONE'],
-            SAVE_ME: ['ONE', 'TWO'],
-            SAVE_ME_TOO: ['ONE', 'TWO'],
-          });
-          done();
-        }
+        expect(
+          find(flushedState.workerQueue.flags, {
+            clientMutationId: queueItem_LOCK_ME.clientMutationId,
+          })
+        ).toMatchObject({
+          status: 'LOCKED',
+        });
+        // order very difficult to test, as workers on different threads[ish].
+        expect(itemsProcessedInOrder.length).toBe(8);
 
-        setTimeout(() => {
-          callback();
-        }, 50);
-      });
+        expect(itemHandlerOrder).toMatchObject({
+          HALT_ME: ['ONE'],
+          HEY_SAVE_ME_TOO: ['ONE', 'TWO'],
+          LOCK_ME: ['ONE'],
+          SAVE_ME: ['ONE', 'TWO'],
+          SAVE_ME_TOO: ['ONE', 'TWO'],
+        });
+        done();
+      }
+
+      setTimeout(() => {
+        callback();
+      }, 50);
     });
   });
 });

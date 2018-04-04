@@ -96,7 +96,7 @@ Triggered by handler resolving to:
 
 A halt stops the subsequent handlers being called until the `QueueItem` is updated and `flush()` called again.
 
-For example, a validation handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action, and return the updated `QueueItem` along with `ok: false`. The user action should trigger an update to the item by passing the changed `QueueItem` to `addOrUpdateQueueItem()`.
+For example, a validation handler that does validation would probably put its validation errors into `QueueItem.errors` to be shown to a user for action, and return the updated `QueueItem` along with `ok: false`. The user action should trigger an update to the item by passing the changed `QueueItem` to `addOrUpdateQueueItem()`. The update to the `QueueItem` will release the halt.
 
 #### Outcome: Locked
 
@@ -113,8 +113,6 @@ A `QueueItem` will be _locked out_ of processing until it is changed if
 _The handler promise should always resolve._
 
 If a handler rejects or throws an error, the error is logged to the console if possible to help you.
-
-To remove a lock, change the `QueueItem` pass the changed `QueueItem` to `addOrUpdateItem()` and call `flush()` again.
 
 ## Workers
 

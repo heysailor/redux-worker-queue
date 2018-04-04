@@ -40,6 +40,7 @@ class WorkerQueue {
   private _rootSelector: (state: any) => Store.All = this._defaultRootSelector;
   readonly actions = {
     addOrUpdateItem: queueDuck.addOrUpdateItem,
+    addOrUpdateItemAndClean: rootDuck.addOrUpdateItemAndClean,
     removeItem: queueDuck.removeItem,
     __clearQueue__: rootDuck.__clearQueue__,
     flush: flushDuck.flush,
@@ -129,11 +130,15 @@ class WorkerQueue {
     }
     this.settings.workers = count;
   }
+
+  // Note this calls addOrUpdateItemAndClean thunk action.
   public addOrUpdateQueueItem(
     item: Queue.Item | Queue.NewItemInput
   ): ClientMutationId {
     const clientMutationId = item.clientMutationId || shortid.generate();
-    store.dispatch(this.actions.addOrUpdateItem({ clientMutationId, ...item }));
+    store.dispatch(
+      this.actions.addOrUpdateItemAndClean({ clientMutationId, ...item })
+    );
     return clientMutationId;
   }
   public async getItem(

@@ -1,11 +1,12 @@
 import { find } from 'lodash';
+import { Dispatch } from 'redux';
 import { QueueItem } from './item';
 import { Queue } from './types';
 import { Action, Store } from '../types';
-import { orderedItems, uniqueItems, rejectedItems } from '../util';
 import { ActionTypes } from '../duck';
 import WorkerQueue, { INSTANCE } from '../WorkerQueue';
 import { rootSelector } from '../store';
+import { orderedItems, uniqueItems, rejectedItems, nextTick } from '../util';
 
 export enum QueueActionTypes {
   ADD_OR_UPDATE_ITEM = '__QUEUE__ADD_OR_UPDATE_ITEM',
@@ -13,7 +14,6 @@ export enum QueueActionTypes {
 }
 
 // Add or update queue item. Entry to using queue.
-// Ensures store initialisation.
 export function addOrUpdateItem(
   queueItem: Queue.Item | Queue.NewItemInput
 ): Queue.AddOrUpdateItemAction {
