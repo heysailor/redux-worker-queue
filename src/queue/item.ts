@@ -7,6 +7,7 @@ export class QueueItem implements Queue.Item {
   readonly errors: Queue.ItemErrors;
   readonly clientMutationId: ClientMutationId = shortid.generate();
   readonly createdAt: string = new Date().toJSON();
+  readonly updatedAt: string | undefined;
 
   constructor(item: Queue.NewItemInput | Queue.Item) {
     this.type = item.type;
@@ -20,5 +21,9 @@ export class QueueItem implements Queue.Item {
       <Queue.Item>item && (<Queue.Item>item).createdAt
         ? (<Queue.Item>item).createdAt
         : this.createdAt;
+    this.updatedAt =
+      <Queue.Item>item && (<Queue.Item>item).createdAt
+        ? new Date().toJSON()
+        : undefined;
   }
 }

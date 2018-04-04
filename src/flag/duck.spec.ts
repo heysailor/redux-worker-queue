@@ -134,6 +134,23 @@ describe('FLAG duck', () => {
           addOrUpdateFlag(queueItem, { status: 'LOCKED' }).flag.status
         ).toEqual('LOCKED');
       });
+
+      test('adds a updatedAt property to the flag on update with existing createdAt field', () => {
+        const updatedFlagAction = addOrUpdateFlag(queueItem, {
+          status: 'WORKING',
+          handlerIndex: 0,
+          createdAt: new Date().toJSON(),
+        });
+        // JSON ISO date matcher
+        // https://www.regexpal.com/97766
+        const check = RegExp(
+          '^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$'
+        );
+        expect(check.test(updatedFlagAction.flag.updatedAt)).toBeTruthy();
+        expect(check.test(updatedFlagAction.flag.updatedAt)).not.toEqual(
+          updatedFlagAction.flag.createdAt
+        );
+      });
     });
 
     describe('removeFlag', () => {

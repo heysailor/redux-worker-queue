@@ -3,6 +3,12 @@ import { QueueItem } from './item';
 import { Queue } from './types';
 import 'jest';
 
+// JSON ISO date matcher
+// https://www.regexpal.com/97766
+const DATE_CHECK = RegExp(
+  '^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$'
+);
+
 describe('QueueItem', () => {
   test('should exist', () => {
     expect(QueueItem).toBeTruthy();
@@ -35,12 +41,7 @@ describe('QueueItem', () => {
     });
 
     test('createdAt should be a date string', () => {
-      // JSON ISO date matcher
-      // https://www.regexpal.com/97766
-      const check = RegExp(
-        '^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$'
-      );
-      expect(check.test(newItem.createdAt)).toBeTruthy();
+      expect(DATE_CHECK.test(newItem.createdAt)).toBeTruthy();
     });
 
     test('clientMutationId should be random id string', () => {
@@ -69,6 +70,11 @@ describe('QueueItem', () => {
     // Probably unwise, but someone might want to for some reason...
     test('type property should change', () => {
       expect(updatedItem.type).toEqual(changedItem.type);
+    });
+
+    test('updatedAt should be a date string different to createdAt', () => {
+      expect(DATE_CHECK.test(updatedItem.updatedAt)).toBeTruthy();
+      expect(updatedItem.updatedAt).not.toEqual(updatedItem.createdAt);
     });
   });
 });

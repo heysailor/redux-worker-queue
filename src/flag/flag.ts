@@ -10,6 +10,7 @@ export class FlagItem implements Flag.Item {
   readonly hash: string;
   readonly lastHash: string | undefined;
   readonly createdAt: string = new Date().toJSON();
+  readonly updatedAt: string | undefined;
 
   constructor(queueItem: Queue.Item, flag: Flag.Item | Flag.NewItemInput) {
     if (!flag.status) {
@@ -26,10 +27,13 @@ export class FlagItem implements Flag.Item {
     this.handlerIndex = flag.handlerIndex || 0;
     this.status = flag.status;
     this.hash = hash.value(queueItem);
+
     if (<Flag.Item>flag) {
       this.lastHash = (<Flag.Item>flag).hash;
+      this.updatedAt = new Date().toJSON();
     } else {
       this.lastHash = undefined;
+      this.updatedAt = undefined;
     }
   }
 }
